@@ -155,23 +155,9 @@ AFRAME.registerComponent('interactive-object', {
                 el.pecaPlane.setAttribute('visible', 'true');
                 
                 // Efeito de aparecer com animação
-                el.pecaPlane.setAttribute('scale', '0.1 0.1 0.1');
-                el.pecaPlane.setAttribute('animation__popup', {
-                    property: 'scale',
-                    from: '0.1 0.1 0.1',
-                    to: '1.3 1.3 1.3',
-                    dur: 300
-                });
-                
+                el.pecaPlane.setAttribute('scale', '1 1 1');
                 // Voltar ao tamanho normal
-                setTimeout(() => {
-                    el.pecaPlane.setAttribute('animation__normalize', {
-                        property: 'scale',
-                        from: '1.3 1.3 1.3',
-                        to: '1 1 1',
-                        dur: 200
-                    });
-                }, 300);
+               
                 
                 // Adicionar brilho pulsante
                 setTimeout(() => {
@@ -194,14 +180,6 @@ AFRAME.registerComponent('interactive-object', {
                 
                 // Parar animação de brilho
                 el.pecaPlane.removeAttribute('animation__glow');
-                
-                // Efeito de desaparecer
-                el.pecaPlane.setAttribute('animation__hide', {
-                    property: 'scale',
-                    from: '1 1 1',
-                    to: '0.1 0.1 0.1',
-                    dur: 200
-                });
                 
                 // Esconder após animação
                 setTimeout(() => {
@@ -469,8 +447,8 @@ function createInteractivePlane(obj, container, index) {
     const pecaPlane = document.createElement('a-plane');
     const pecaPosition = {
         x: position.x,
-        y: position.y + 0.8, // 0.8 unidades acima do objeto
-        z: position.z - 0.3   // Um pouco na frente do objeto
+        y: position.y, // 0.8 unidades acima do objeto
+        z: position.z   // Mais à frente do objeto
     };
     
     pecaPlane.setAttribute('position', pecaPosition);
