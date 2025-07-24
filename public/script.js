@@ -90,23 +90,85 @@ AFRAME.registerComponent('cursor-listener', {
 // Inicializar webcam
 async function initWebcam() {
     try {
+        // Verificar suporte do navegador
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Navegador não suporta acesso à câmera');
+        }
+        
         const video = document.getElementById('webcam');
+        
+        if (!video) {
+            console.error('❌ Elemento de vídeo não encontrado!');
+            return;
+        }
+        
+        console.log('🔍 Tentando acessar a câmera...');
+        
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
-                facingMode: 'environment' // Câmera traseira no celular
+                facingMode: 'environment', // Câmera traseira no celular
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
             } 
         });
+        
         video.srcObject = stream;
-        console.log('📷 Webcam inicializada!');
+        
+        // Aguardar o vídeo carregar
+        video.onloadedmetadata = function() {
+            console.log('📷 Webcam inicializada com sucesso!');
+        };
+        
     } catch (error) {
         console.error('❌ Erro ao acessar webcam:', error);
-        // Fallback: fundo escuro se não conseguir acessar a câmera
-        document.querySelector('a-scene').setAttribute('background', 'color: #001133');
+        console.log('💡 Tentando usar câmera frontal...');
+        
+        // Tentar câmera frontal como fallback
+        try {
+            const video = document.getElementById('webcam');
+            if (video) {
+                const frontStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user' // Câmera frontal
+                    } 
+                });
+                video.srcObject = frontStream;
+                console.log('📷 Câmera frontal inicializada!');
+            }
+        } catch (frontError) {
+            console.error('❌ Erro com câmera frontal também:', frontError);
+            
+            // Fallback final: fundo escuro
+            const scene = document.querySelector('a-scene');
+            if (scene) {
+                scene.setAttribute('background', 'color: #001133');
+                console.log('🎨 Usando fundo escuro como fallback');
+            }
+        }
     }
 }
 
-// Inicializar webcam quando a página carregar
-initWebcam();
+// Aguardar DOM carregar antes de inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 SAE RA - DOM Carregado!');
+    
+    // Tentar inicializar webcam imediatamente
+    initWebcam();
+    
+    // Backup: também tentar quando a cena A-Frame carregar
+    const scene = document.querySelector('a-scene');
+    if (scene) {
+        scene.addEventListener('loaded', function() {
+            console.log('🎬 Cena A-Frame carregada!');
+            // Só inicializar novamente se o vídeo ainda não tem stream
+            const video = document.getElementById('webcam');
+            if (video && !video.srcObject) {
+                console.log('🔄 Tentando inicializar webcam novamente...');
+                initWebcam();
+            }
+        });
+    }
+});
 
 // Log de inicialização
 console.log('🚀 SAE RA - Experiência 360° Inicializada! Gire para explorar o cinturão de objetos!'); 
