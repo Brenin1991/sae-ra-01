@@ -17,6 +17,7 @@ AFRAME.registerComponent('billboard', {
 AFRAME.registerComponent('auto-detect', {
     init: function () {
         this.lastTriggered = {};
+        this.lastIntersectedObjects = new Set(); // Rastrear objetos intersectados
         this.checkInterval = 100; // ms entre verificações
         this.lastCheck = 0;
         this.cooldown = 800; // 0.8 segundos entre triggers do mesmo objeto
@@ -60,6 +61,9 @@ AFRAME.registerComponent('auto-detect', {
         // Testar intersecções
         const intersections = this.raycaster.intersectObjects(threeObjects, true);
         
+        // Rastrear objetos que estavam sendo mirados no frame anterior
+        const previouslyIntersected = new Set();
+        
         if (intersections.length > 0) {
             // Pegar o primeiro objeto intersectado
             let targetObject = intersections[0].object;
@@ -77,6 +81,7 @@ AFRAME.registerComponent('auto-detect', {
                     const component = firstEl.components['interactive-object'];
                     if (component) {
                         const objectId = component.data.objectId;
+                        previouslyIntersected.add(objectId);
                         
                         // Verificar cooldown
                         if (!this.lastTriggered[objectId] || 
@@ -88,14 +93,43 @@ AFRAME.registerComponent('auto-detect', {
                             // Chamar diretamente a função de mostrar peça
                             const showFunction = firstEl.showPecaOnIntersection;
                             if (showFunction) {
-                                console.log('🚀 EXECUTANDO POR DIREÇÃO DA CÂMERA!');
-                                showFunction();
+                                // Verificar se a peça já está visível para evitar conflitos
+                                const pecaPlane = firstEl.pecaPlane;
+                                if (pecaPlane && !pecaPlane.getAttribute('visible')) {
+                                    console.log('🚀 EXECUTANDO POR DIREÇÃO DA CÂMERA!');
+                                    showFunction();
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        
+        // Esconder peças de objetos que não estão mais sendo mirados
+        if (this.lastIntersectedObjects) {
+            this.lastIntersectedObjects.forEach(objectId => {
+                if (!previouslyIntersected.has(objectId)) {
+                    // Encontrar o elemento e esconder a peça
+                    const interactiveObjects = document.querySelectorAll('.clickable');
+                    interactiveObjects.forEach(el => {
+                        if (el.hasAttribute('interactive-object')) {
+                            const component = el.components['interactive-object'];
+                            if (component && component.data.objectId === objectId) {
+                                const hideFunction = el.hidePecaOnIntersectionCleared;
+                                if (hideFunction) {
+                                    console.log('🙈 CÂMERA SAIU DO OBJETO:', objectId);
+                                    hideFunction();
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Atualizar lista de objetos intersectados
+        this.lastIntersectedObjects = previouslyIntersected;
     }
 });
 
@@ -111,95 +145,83 @@ AFRAME.registerComponent('interactive-object', {
         const el = this.el;
         const data = this.data;
         
-        // Função para criar peça permanente quando raycaster detecta intersecção
-        let alreadyTriggered = false;
-        
+        // Função para mostrar peça quando cursor entra
         function showPecaOnIntersection(event) {
-            // Evitar multiple triggers do mesmo objeto
-            if (alreadyTriggered) return;
-            alreadyTriggered = true;
-            
-            // Criar plane da peça permanente na frente do objeto
-            const pecaPlane = document.createElement('a-plane');
-            const objectPosition = el.getAttribute('position');
-            
-            // Posicionar peça em cima do objeto clicado
-            const pecaPosition = {
-                x: objectPosition.x,
-                y: objectPosition.y + 0.8, // 0.8 unidades acima do objeto
-                z: objectPosition.z - 0.3   // Um pouco na frente do objeto
-            };
-            
-            pecaPlane.setAttribute('position', pecaPosition);
-            pecaPlane.setAttribute('width', '1.2');
-            pecaPlane.setAttribute('height', '1.2');
-            
-            // Começar invisível para efeito de aparecer
-            pecaPlane.setAttribute('scale', '0.1 0.1 0.1');
-            
-            // Efeito dramático de aparecer
-            pecaPlane.setAttribute('animation__popup', {
-                property: 'scale',
-                from: '0.1 0.1 0.1',
-                to: '1.3 1.3 1.3',
-                dur: 300
-            });
-            
-            // Depois volta ao tamanho normal
-            setTimeout(() => {
-                pecaPlane.setAttribute('animation__normalize', {
+            // Usar a peça que já foi criada na função createInteractivePlane
+            if (el.pecaPlane) {
+                console.log('👁️ Mostrando peça para:', data.objectId);
+                
+                // Mostrar a peça
+                el.pecaPlane.setAttribute('visible', 'true');
+                
+                // Efeito de aparecer com animação
+                el.pecaPlane.setAttribute('scale', '0.1 0.1 0.1');
+                el.pecaPlane.setAttribute('animation__popup', {
                     property: 'scale',
-                    from: '1.3 1.3 1.3',
-                    to: '1 1 1',
-                    dur: 200
+                    from: '0.1 0.1 0.1',
+                    to: '1.3 1.3 1.3',
+                    dur: 300
                 });
-            }, 300);
-            
-            // Carregar textura após animação
-            setTimeout(() => {
-                pecaPlane.setAttribute('material', {
-                    src: data.pecaSrc,
-                    transparent: true,
-                    alphaTest: 0.1,
-                    emissive: '#FFFFFF',
-                    emissiveIntensity: 0.4
-                });
-            }, 100);
-            
-            // Fazer a peça sempre olhar para a câmera
-            pecaPlane.setAttribute('billboard', '');
-            
-            // Adicionar brilho pulsante para chamar atenção
-            setTimeout(() => {
-                pecaPlane.setAttribute('animation__glow', {
-                    property: 'material.emissiveIntensity',
-                    from: 0.4,
-                    to: 0.8,
-                    dur: 1500,
-                    loop: true,
-                    dir: 'alternate'
-                });
-            }, 500);
-            
-            // ID único para cada peça
-            const timestamp = Date.now();
-            pecaPlane.id = 'peca-' + timestamp;
-            pecaPlane.classList.add('peca-plane');
-            
-            // Adicionar à cena
-            const container = document.getElementById('interactive-objects');
-            if (container) {
-                container.appendChild(pecaPlane);
+                
+                // Voltar ao tamanho normal
+                setTimeout(() => {
+                    el.pecaPlane.setAttribute('animation__normalize', {
+                        property: 'scale',
+                        from: '1.3 1.3 1.3',
+                        to: '1 1 1',
+                        dur: 200
+                    });
+                }, 300);
+                
+                // Adicionar brilho pulsante
+                setTimeout(() => {
+                    el.pecaPlane.setAttribute('animation__glow', {
+                        property: 'material.emissiveIntensity',
+                        from: 0.4,
+                        to: 0.8,
+                        dur: 1500,
+                        loop: true,
+                        dir: 'alternate'
+                    });
+                }, 500);
             }
         }
         
-        // As peças agora são permanentes - não esconder quando o cursor sai
+        // Função para esconder peça quando cursor sai
+        function hidePecaOnIntersectionCleared(event) {
+            if (el.pecaPlane) {
+                console.log('🙈 Escondendo peça para:', data.objectId);
+                
+                // Parar animação de brilho
+                el.pecaPlane.removeAttribute('animation__glow');
+                
+                // Efeito de desaparecer
+                el.pecaPlane.setAttribute('animation__hide', {
+                    property: 'scale',
+                    from: '1 1 1',
+                    to: '0.1 0.1 0.1',
+                    dur: 200
+                });
+                
+                // Esconder após animação
+                setTimeout(() => {
+                    el.pecaPlane.setAttribute('visible', 'false');
+                    el.pecaPlane.removeAttribute('animation__hide');
+                }, 200);
+            }
+        }
         
         // Disponibilizar função para acesso direto pelo auto-detect
         el.showPecaOnIntersection = showPecaOnIntersection;
+        el.hidePecaOnIntersectionCleared = hidePecaOnIntersectionCleared;
         
-        // OTIMIZADO: Usar evento na entidade intersectada (mais eficiente)
+        // Eventos para mostrar/esconder peça
         el.addEventListener('raycaster-intersected', showPecaOnIntersection);
+        el.addEventListener('raycaster-intersected-cleared', hidePecaOnIntersectionCleared);
+        
+        // Também adicionar eventos de mouse para desktop
+        el.addEventListener('mouseenter', showPecaOnIntersection);
+        el.addEventListener('mouseleave', hidePecaOnIntersectionCleared);
     }
 });
 
