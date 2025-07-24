@@ -18,8 +18,8 @@
     </div>
     
     <div class="controls">
-        <div>👆 Hover = Peça aparece PERMANENTE!</div>
-        <div>🔄 Gire para explorar • 💥 Efeito POPUP dramático</div>
+        <div>🎯 MIRE no objeto = Peça aparece!</div>
+        <div>📱 Mobile: Aponte o centro da tela • 🖥️ Desktop: Hover</div>
         <div>💡 Peças ACUMULAM - botão vermelho limpa</div>
         <button id="toggleMode" class="mode-button">🌅 Modo HDRI</button>
         <button id="clearPecas" class="mode-button" style="background: rgba(255, 0, 0, 0.8);">🗑️ Limpar Peças</button>
@@ -76,17 +76,17 @@
              look-controls="enabled: true"
              wasd-controls="enabled: true"
          >
-             <a-cursor 
-                 color="#FF69B4"
-                 cursor="rayOrigin: mouse"
-                 raycaster="objects: .clickable; showLine: true; far: 1000; interval: 100"
-                 animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
-                 animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
-                 animation__mouseenter="property: scale; startEvents: raycaster-intersection; from: 1 1 1; to: 1.4 1.4 1.4; dur: 200"
-                 animation__mouseleave="property: scale; startEvents: raycaster-intersection-cleared; from: 1.4 1.4 1.4; to: 1 1 1; dur: 200"
-                 geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-                 material="color: #FF69B4; shader: flat"
-             ></a-cursor>
+                           <a-cursor 
+                  color="#FF0000"
+                  cursor="rayOrigin: mouse"
+                                     raycaster="objects: .clickable; showLine: false; far: 1000; interval: 50"
+                  animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
+                  animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
+                  animation__mouseenter="property: scale; startEvents: raycaster-intersection; from: 1 1 1; to: 2.0 2.0 2.0; dur: 200"
+                  animation__mouseleave="property: scale; startEvents: raycaster-intersection-cleared; from: 2.0 2.0 2.0; to: 1 1 1; dur: 200"
+                  geometry="primitive: ring; radiusInner: 0.03; radiusOuter: 0.06"
+                  material="color: #FF0000; shader: flat"
+              ></a-cursor>
          </a-camera>
     </a-scene>
 

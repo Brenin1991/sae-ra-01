@@ -125,7 +125,7 @@ AFRAME.registerComponent('interactive-object', {
         // Debug: adicionar logs para entender se o raycaster funciona
         console.log('🔧 Adicionando event listener para', data.objectId);
         
-        // Usar apenas eventos do raycaster do A-Frame (hover)
+        // Usar eventos do raycaster do A-Frame (funciona em desktop e mobile)
         el.addEventListener('raycaster-intersection', function(event) {
             console.log('🎯 RAYCASTER DETECTOU:', data.objectId);
             showPecaOnIntersection(event);
@@ -137,8 +137,25 @@ AFRAME.registerComponent('interactive-object', {
             showPecaOnIntersection(event);
         });
         
+        // Adicionar touchstart para mobile (sem precisar de click completo)
+        el.addEventListener('touchstart', function(event) {
+            console.log('👆 TOUCH START detectado:', data.objectId);
+            event.preventDefault(); // Evitar que vire um click
+            showPecaOnIntersection(event);
+        });
+        
+        // Para mobile: adicionar também touchend (mais compatível)
+        el.addEventListener('touchend', function(event) {
+            console.log('👆 TOUCH END detectado:', data.objectId);
+            event.preventDefault(); // Evitar que vire um click
+            showPecaOnIntersection(event);
+        });
+        
+        // Armazenar função no elemento para acesso móvel
+        el.showPecaOnIntersection = showPecaOnIntersection;
+        
         // Removido: raycaster-intersection-cleared - peças ficam permanentes
-        // Removido: click event - apenas hover agora
+        // Agora funciona com hover, mouseenter e touchstart
     }
 });
 
@@ -559,6 +576,68 @@ function toggleMode() {
     }
 }
 
+// Sistema de detecção automática para mobile
+function startMobileDetection() {
+    // Detectar se é mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        console.log('📱 Mobile detectado - iniciando sistema de auto-detecção');
+        
+        // Usar orientação da câmera para detectar objetos
+        const camera = document.querySelector('a-camera');
+        
+        // Verificar intersecções a cada 200ms (mais responsivo)
+        setInterval(() => {
+            const cursor = document.querySelector('a-cursor');
+            if (cursor && cursor.components && cursor.components.raycaster) {
+                const intersections = cursor.components.raycaster.intersectedEls;
+                
+                if (intersections.length > 0) {
+                    const intersectedEl = intersections[0];
+                    
+                    // Verificar se tem o componente interactive-object
+                    if (intersectedEl.hasAttribute('interactive-object')) {
+                        const component = intersectedEl.components['interactive-object'];
+                        if (component && !intersectedEl.alreadyTriggeredMobile) {
+                            console.log('📱 Auto-detecção móvel:', component.data.objectId);
+                            intersectedEl.alreadyTriggeredMobile = true;
+                            
+                            // Disparar diretamente a função de criar peça
+                            const showPecaFunction = intersectedEl.showPecaOnIntersection;
+                            if (showPecaFunction) {
+                                showPecaFunction();
+                            }
+                        }
+                    }
+                }
+            }
+        }, 200); // Verificar a cada 200ms
+    }
+}
+
+// Função para adicionar detecção via movimento do dispositivo
+function addDeviceOrientationDetection() {
+    // Para mobile: quando mexer o celular, resetar flags para permitir nova detecção
+    if ('DeviceOrientationEvent' in window) {
+        let lastCheck = 0;
+        
+        window.addEventListener('deviceorientation', function() {
+            const now = Date.now();
+            if (now - lastCheck > 1000) { // A cada 1 segundo
+                // Resetar flags para permitir nova detecção
+                const interactiveObjects = document.querySelectorAll('[interactive-object]');
+                interactiveObjects.forEach(obj => {
+                    obj.alreadyTriggeredMobile = false;
+                });
+                lastCheck = now;
+            }
+        });
+        
+        console.log('📱 Detecção por orientação do dispositivo ativada');
+    }
+}
+
 // Aguardar DOM carregar antes de inicializar
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 SAE RA - DOM Carregado!');
@@ -592,6 +671,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Carregar dados do jogo
             loadGameData();
+            
+            // Iniciar detecção automática para mobile
+            setTimeout(startMobileDetection, 2000);
+            setTimeout(addDeviceOrientationDetection, 1000);
             
             // Só inicializar novamente se o vídeo ainda não tem stream
             const video = document.getElementById('webcam');
