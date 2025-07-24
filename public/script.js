@@ -113,6 +113,7 @@ async function initWebcam() {
         });
         
         video.srcObject = stream;
+        currentStream = stream; // Salvar stream para poder parar depois
         
         // Aguardar o vídeo carregar
         video.onloadedmetadata = function() {
@@ -133,6 +134,7 @@ async function initWebcam() {
                     } 
                 });
                 video.srcObject = frontStream;
+                currentStream = frontStream; // Salvar stream da câmera frontal também
                 console.log('📷 Câmera frontal inicializada!');
             }
         } catch (frontError) {
@@ -148,9 +150,80 @@ async function initWebcam() {
     }
 }
 
+// Variáveis globais
+let isARMode = true;
+let currentStream = null;
+
+// Função para alternar entre modo AR e HDRI
+function toggleMode() {
+    const video = document.getElementById('webcam');
+    const sky = document.querySelector('a-sky');
+    const scene = document.querySelector('a-scene');
+    const button = document.getElementById('toggleMode');
+    
+    if (isARMode) {
+        // Mudar para modo HDRI
+        console.log('🌅 Mudando para modo HDRI...');
+        
+        // Parar webcam
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        if (video) {
+            video.srcObject = null;
+            video.style.display = 'none';
+        }
+        
+        // Ativar HDRI
+        if (sky) {
+            sky.setAttribute('visible', 'true');
+        }
+        if (scene) {
+            scene.setAttribute('background', '');
+        }
+        
+        button.textContent = 'Modo AR';
+        isARMode = false;
+        
+    } else {
+        // Mudar para modo AR
+        console.log('📱 Mudando para modo AR...');
+        
+        // Desativar HDRI
+        if (sky) {
+            sky.setAttribute('visible', 'false');
+        }
+        if (scene) {
+            scene.setAttribute('background', 'transparent: true');
+        }
+        
+        // Reativar webcam
+        if (video) {
+            video.style.display = 'block';
+        }
+        initWebcam();
+        
+        button.textContent = '🌅 Modo HDRI';
+        isARMode = true;
+    }
+}
+
 // Aguardar DOM carregar antes de inicializar
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 SAE RA - DOM Carregado!');
+    
+    // Configurar botão de alternância
+    const toggleButton = document.getElementById('toggleMode');
+    if (toggleButton) {
+        toggleButton.addEventListener('click', toggleMode);
+    }
+    
+    // Inicializar em modo AR por padrão
+    const sky = document.querySelector('a-sky');
+    if (sky) {
+        sky.setAttribute('visible', 'false');
+    }
     
     // Tentar inicializar webcam imediatamente
     initWebcam();
@@ -162,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('🎬 Cena A-Frame carregada!');
             // Só inicializar novamente se o vídeo ainda não tem stream
             const video = document.getElementById('webcam');
-            if (video && !video.srcObject) {
+            if (video && !video.srcObject && isARMode) {
                 console.log('🔄 Tentando inicializar webcam novamente...');
                 initWebcam();
             }
@@ -170,5 +243,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Função para tentar carregar HDRI em diferentes formatos
+function loadHDRI() {
+    const formats = ['jpg', 'png', 'hdr'];
+    let formatIndex = 0;
+    
+    function tryNextFormat() {
+        if (formatIndex >= formats.length) {
+            console.log('⚠️ Nenhum formato de skybox encontrado - usando gradient');
+            console.log('💡 Coloque sky.jpg ou sky.png na pasta assets/');
+            console.log('🔧 Dica: Use https://www.hdri-to-cubemap.com/ para converter');
+            return;
+        }
+        
+        const format = formats[formatIndex];
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = function() {
+            console.log(`✅ Skybox ${format.toUpperCase()} carregado com sucesso!`);
+            // Substituir o gradient pelo skybox real
+            const sky = document.querySelector('a-sky');
+            if (sky) {
+                sky.setAttribute('src', `assets/sky.${format}`);
+            }
+        };
+        
+        img.onerror = function() {
+            console.log(`❌ sky.${format} não encontrado, tentando próximo formato...`);
+            formatIndex++;
+            tryNextFormat();
+        };
+        
+        img.src = `assets/sky.${format}`;
+    }
+    
+    tryNextFormat();
+}
+
 // Log de inicialização
-console.log('🚀 SAE RA - Experiência 360° Inicializada! Gire para explorar o cinturão de objetos!'); 
+console.log('🚀 SAE RA - Experiência 360° Inicializada! Gire para explorar o cinturão de objetos!');
+
+// Tentar carregar HDRI
+loadHDRI(); 

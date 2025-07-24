@@ -43,9 +43,35 @@ a-scene {
     pointer-events: auto;
 }
 
+.mode-button {
+    background: rgba(255, 105, 180, 0.8);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.mode-button:hover {
+    background: rgba(255, 105, 180, 1);
+    transform: scale(1.05);
+}
+
+.mode-button:active {
+    transform: scale(0.95);
+}
+
 @media (max-width: 768px) {
     .info, .controls {
         font-size: 12px;
         padding: 10px;
+    }
+    
+    .mode-button {
+        font-size: 12px;
+        padding: 8px 12px;
     }
 } 
