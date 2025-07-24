@@ -32,7 +32,7 @@ public/
 - Posicionado na localização do objeto original (ou fallback em círculo)
 
 ### 3. **Interação**
-- **Clique simples:** Ativa brilho rosa + cria nova `peca` permanente EM CIMA do objeto clicado
+- **Clique simples:** Cria nova `peca` permanente EM CIMA do objeto clicado
 - **Efeito dramático:** Peça aparece com animação popup (pequeno → grande → normal)
 - **Múltiplos cliques:** Criam múltiplas peças que se acumulam na cena
 - **Posicionamento:** Peça fica 0.8 unidades acima e 0.3 na frente do objeto

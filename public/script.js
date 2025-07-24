@@ -24,64 +24,19 @@ AFRAME.registerComponent('interactive-object', {
     init: function () {
         const el = this.el;
         const data = this.data;
-        let isGlowing = false;
         
         // Função para lidar com interação (clique ou toque)
         function handleInteraction(event) {
             event.stopPropagation(); // Evitar que o clique se propague
             console.log('🎯 Objeto interagido:', data.objectId);
             
-            // Sempre ativar brilho e mostrar peça
-            el.setAttribute('animation__glow', {
-                property: 'material.emissiveIntensity',
-                to: 0.8,
-                dur: 1000,
-                loop: true,
-                dir: 'alternate'
-            });
-            
-            el.setAttribute('material', {
-                emissive: '#FF1493',
-                emissiveIntensity: 0.5
-            });
-            
-            // Aumentar tamanho
-            el.setAttribute('animation__scale', {
-                property: 'scale',
-                to: '1.2 1.2 1.2',
-                dur: 300
-            });
-            
-            isGlowing = true;
-            
-            // Sempre mostrar peça
+            // Apenas mostrar peça - sem brilho rosa no objeto
             showPeca(data.pecaSrc, el);
         }
         
         // Adicionar múltiplos event listeners para máxima compatibilidade
         el.addEventListener('click', handleInteraction);
         el.addEventListener('touchend', handleInteraction);
-        
-        // Feedback visual no hover
-        el.addEventListener('mouseenter', function () {
-            if (!isGlowing) {
-                el.setAttribute('animation__hover', {
-                    property: 'scale',
-                    to: '1.1 1.1 1.1',
-                    dur: 200
-                });
-            }
-        });
-        
-        el.addEventListener('mouseleave', function () {
-            if (!isGlowing) {
-                el.setAttribute('animation__hover', {
-                    property: 'scale',
-                    to: '1 1 1',
-                    dur: 200
-                });
-            }
-        });
     }
 });
 
@@ -435,15 +390,6 @@ function createInteractivePlane(obj, container, index) {
     
     // Log de debug para verificar se os event listeners foram adicionados
     console.log(`🎧 Event listeners adicionados para objeto ${obj.id}`);
-    
-    // Teste simples - adicionar evento de mouseover para debug
-    plane.addEventListener('mouseenter', function() {
-        console.log(`🎯 Mouse entrou no objeto ${obj.id}`);
-    });
-    
-    plane.addEventListener('mouseleave', function() {
-        console.log(`👋 Mouse saiu do objeto ${obj.id}`);
-    });
 }
 
 // Inicializar webcam
@@ -569,7 +515,7 @@ function toggleMode() {
         }
         initWebcam();
         
-        button.textContent = '🌅 Modo HDRI';
+        button.textContent = 'Modo HDRI';
         isARMode = true;
     }
 }
