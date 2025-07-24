@@ -13,6 +13,92 @@ AFRAME.registerComponent('billboard', {
     }
 });
 
+// Componente para detecção automática baseada na DIREÇÃO da câmera (SEM MOUSE!)
+AFRAME.registerComponent('auto-detect', {
+    init: function () {
+        this.lastTriggered = {};
+        this.checkInterval = 100; // ms entre verificações
+        this.lastCheck = 0;
+        this.cooldown = 800; // 0.8 segundos entre triggers do mesmo objeto
+        this.raycaster = new THREE.Raycaster();
+        this.camera = null;
+        
+        console.log('🎯 DETECÇÃO AUTOMÁTICA POR DIREÇÃO DA CÂMERA!');
+    },
+    
+    tick: function (time) {
+        // Verificar apenas a cada intervalo
+        if (time - this.lastCheck < this.checkInterval) return;
+        this.lastCheck = time;
+        
+        // Pegar câmera
+        if (!this.camera) {
+            this.camera = document.querySelector('a-camera');
+            if (!this.camera) return;
+        }
+        
+        // Pegar todos os objetos interativos
+        const interactiveObjects = document.querySelectorAll('.clickable');
+        if (interactiveObjects.length === 0) return;
+        
+        // Configurar raycaster baseado na direção da câmera
+        const cameraObj = this.camera.object3D;
+        const direction = new THREE.Vector3(0, 0, -1);
+        direction.applyQuaternion(cameraObj.quaternion);
+        
+        this.raycaster.set(cameraObj.position, direction);
+        
+        // Converter elementos A-Frame para objetos Three.js
+        const threeObjects = [];
+        interactiveObjects.forEach(el => {
+            if (el.object3D) {
+                el.object3D.userData.aframeElement = el;
+                threeObjects.push(el.object3D);
+            }
+        });
+        
+        // Testar intersecções
+        const intersections = this.raycaster.intersectObjects(threeObjects, true);
+        
+        if (intersections.length > 0) {
+            // Pegar o primeiro objeto intersectado
+            let targetObject = intersections[0].object;
+            
+            // Subir na hierarquia até encontrar o elemento A-Frame
+            while (targetObject && !targetObject.userData.aframeElement) {
+                targetObject = targetObject.parent;
+            }
+            
+            if (targetObject && targetObject.userData.aframeElement) {
+                const firstEl = targetObject.userData.aframeElement;
+                
+                // Verificar se é um objeto interativo
+                if (firstEl.hasAttribute('interactive-object')) {
+                    const component = firstEl.components['interactive-object'];
+                    if (component) {
+                        const objectId = component.data.objectId;
+                        
+                        // Verificar cooldown
+                        if (!this.lastTriggered[objectId] || 
+                            time - this.lastTriggered[objectId] > this.cooldown) {
+                            
+                            console.log('🎯 CÂMERA MIROU NO OBJETO:', objectId);
+                            this.lastTriggered[objectId] = time;
+                            
+                            // Chamar diretamente a função de mostrar peça
+                            const showFunction = firstEl.showPecaOnIntersection;
+                            if (showFunction) {
+                                console.log('🚀 EXECUTANDO POR DIREÇÃO DA CÂMERA!');
+                                showFunction();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+});
+
 // Componente para objetos interativos
 AFRAME.registerComponent('interactive-object', {
     schema: {
@@ -33,13 +119,9 @@ AFRAME.registerComponent('interactive-object', {
             if (alreadyTriggered) return;
             alreadyTriggered = true;
             
-            console.log('🎯 Cursor detectou objeto:', data.objectId);
-            
             // Criar plane da peça permanente na frente do objeto
             const pecaPlane = document.createElement('a-plane');
             const objectPosition = el.getAttribute('position');
-            
-            console.log('📍 Posição do objeto:', objectPosition);
             
             // Posicionar peça em cima do objeto clicado
             const pecaPosition = {
@@ -48,16 +130,12 @@ AFRAME.registerComponent('interactive-object', {
                 z: objectPosition.z - 0.3   // Um pouco na frente do objeto
             };
             
-            console.log('🎯 Peça vai aparecer em cima do objeto:', pecaPosition);
-            console.log('💥 INICIANDO EFEITO POPUP DRAMÁTICO!');
-            
             pecaPlane.setAttribute('position', pecaPosition);
             pecaPlane.setAttribute('width', '1.2');
             pecaPlane.setAttribute('height', '1.2');
             
             // Começar invisível para efeito de aparecer
             pecaPlane.setAttribute('scale', '0.1 0.1 0.1');
-            pecaPlane.setAttribute('color', '#FFFF00'); // Amarelo para teste
             
             // Efeito dramático de aparecer
             pecaPlane.setAttribute('animation__popup', {
@@ -75,7 +153,6 @@ AFRAME.registerComponent('interactive-object', {
                     to: '1 1 1',
                     dur: 200
                 });
-                console.log('✨ Efeito popup finalizado - peça estabilizada!');
             }, 300);
             
             // Carregar textura após animação
@@ -87,7 +164,6 @@ AFRAME.registerComponent('interactive-object', {
                     emissive: '#FFFFFF',
                     emissiveIntensity: 0.4
                 });
-                console.log('🖼️ Textura aplicada:', data.pecaSrc);
             }, 100);
             
             // Fazer a peça sempre olhar para a câmera
@@ -114,48 +190,16 @@ AFRAME.registerComponent('interactive-object', {
             const container = document.getElementById('interactive-objects');
             if (container) {
                 container.appendChild(pecaPlane);
-                console.log('✅ Peça permanente criada via hover!');
-            } else {
-                console.log('❌ ERRO: Container não encontrado');
             }
         }
         
         // As peças agora são permanentes - não esconder quando o cursor sai
         
-        // Debug: adicionar logs para entender se o raycaster funciona
-        console.log('🔧 Adicionando event listener para', data.objectId);
-        
-        // Usar eventos do raycaster do A-Frame (funciona em desktop e mobile)
-        el.addEventListener('raycaster-intersection', function(event) {
-            console.log('🎯 RAYCASTER DETECTOU:', data.objectId);
-            showPecaOnIntersection(event);
-        });
-        
-        // Backup: adicionar mouseenter para desktop
-        el.addEventListener('mouseenter', function(event) {
-            console.log('🖱️ MOUSE ENTER detectado:', data.objectId);
-            showPecaOnIntersection(event);
-        });
-        
-        // Adicionar touchstart para mobile (sem precisar de click completo)
-        el.addEventListener('touchstart', function(event) {
-            console.log('👆 TOUCH START detectado:', data.objectId);
-            event.preventDefault(); // Evitar que vire um click
-            showPecaOnIntersection(event);
-        });
-        
-        // Para mobile: adicionar também touchend (mais compatível)
-        el.addEventListener('touchend', function(event) {
-            console.log('👆 TOUCH END detectado:', data.objectId);
-            event.preventDefault(); // Evitar que vire um click
-            showPecaOnIntersection(event);
-        });
-        
-        // Armazenar função no elemento para acesso móvel
+        // Disponibilizar função para acesso direto pelo auto-detect
         el.showPecaOnIntersection = showPecaOnIntersection;
         
-        // Removido: raycaster-intersection-cleared - peças ficam permanentes
-        // Agora funciona com hover, mouseenter e touchstart
+        // OTIMIZADO: Usar evento na entidade intersectada (mais eficiente)
+        el.addEventListener('raycaster-intersected', showPecaOnIntersection);
     }
 });
 
@@ -400,9 +444,6 @@ function createInteractivePlane(obj, container, index) {
     plane.setAttribute('cursor-listener', '');
     plane.classList.add('clickable');
     
-    // Debug: verificar se a classe foi adicionada
-    console.log(`🎯 Objeto ${obj.id} criado com classe clickable:`, plane.classList.contains('clickable'));
-    
     container.appendChild(plane);
     
     // Criar peça correspondente (INVISÍVEL no início)
@@ -444,8 +485,7 @@ function createInteractivePlane(obj, container, index) {
     console.log(`✅ Plane criado para objeto ${obj.id} em`, position);
     console.log(`✅ Peça criada para objeto ${obj.id} (inicialmente invisível)`);
     
-    // Log de debug para verificar se os event listeners foram adicionados
-    console.log(`🎧 Event listeners adicionados para objeto ${obj.id}`);
+
 }
 
 // Inicializar webcam
@@ -576,72 +616,10 @@ function toggleMode() {
     }
 }
 
-// Sistema de detecção automática para mobile
-function startMobileDetection() {
-    // Detectar se é mobile
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        console.log('📱 Mobile detectado - iniciando sistema de auto-detecção');
-        
-        // Usar orientação da câmera para detectar objetos
-        const camera = document.querySelector('a-camera');
-        
-        // Verificar intersecções a cada 200ms (mais responsivo)
-        setInterval(() => {
-            const cursor = document.querySelector('a-cursor');
-            if (cursor && cursor.components && cursor.components.raycaster) {
-                const intersections = cursor.components.raycaster.intersectedEls;
-                
-                if (intersections.length > 0) {
-                    const intersectedEl = intersections[0];
-                    
-                    // Verificar se tem o componente interactive-object
-                    if (intersectedEl.hasAttribute('interactive-object')) {
-                        const component = intersectedEl.components['interactive-object'];
-                        if (component && !intersectedEl.alreadyTriggeredMobile) {
-                            console.log('📱 Auto-detecção móvel:', component.data.objectId);
-                            intersectedEl.alreadyTriggeredMobile = true;
-                            
-                            // Disparar diretamente a função de criar peça
-                            const showPecaFunction = intersectedEl.showPecaOnIntersection;
-                            if (showPecaFunction) {
-                                showPecaFunction();
-                            }
-                        }
-                    }
-                }
-            }
-        }, 200); // Verificar a cada 200ms
-    }
-}
 
-// Função para adicionar detecção via movimento do dispositivo
-function addDeviceOrientationDetection() {
-    // Para mobile: quando mexer o celular, resetar flags para permitir nova detecção
-    if ('DeviceOrientationEvent' in window) {
-        let lastCheck = 0;
-        
-        window.addEventListener('deviceorientation', function() {
-            const now = Date.now();
-            if (now - lastCheck > 1000) { // A cada 1 segundo
-                // Resetar flags para permitir nova detecção
-                const interactiveObjects = document.querySelectorAll('[interactive-object]');
-                interactiveObjects.forEach(obj => {
-                    obj.alreadyTriggeredMobile = false;
-                });
-                lastCheck = now;
-            }
-        });
-        
-        console.log('📱 Detecção por orientação do dispositivo ativada');
-    }
-}
 
 // Aguardar DOM carregar antes de inicializar
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 SAE RA - DOM Carregado!');
-    
     // Configurar botão de alternância
     const toggleButton = document.getElementById('toggleMode');
     if (toggleButton) {
@@ -667,24 +645,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const scene = document.querySelector('a-scene');
     if (scene) {
         scene.addEventListener('loaded', function() {
-            console.log('🎬 Cena A-Frame carregada!');
-            
             // Carregar dados do jogo
             loadGameData();
-            
-            // Iniciar detecção automática para mobile
-            setTimeout(startMobileDetection, 2000);
-            setTimeout(addDeviceOrientationDetection, 1000);
             
             // Só inicializar novamente se o vídeo ainda não tem stream
             const video = document.getElementById('webcam');
             if (video && !video.srcObject && isARMode) {
-                console.log('🔄 Tentando inicializar webcam novamente...');
                 initWebcam();
             }
+            
+            // Adicionar sistema de reset automático
+            setupAutoReset();
         });
     }
 });
+
+// Sistema simplificado de reset por tempo
+function setupAutoReset() {
+    console.log('📱 Sistema de reset automático por tempo');
+    
+    // A cada 2 segundos, resetar triggers para permitir nova detecção
+    setInterval(() => {
+        const cursor = document.querySelector('#main-cursor');
+        if (cursor && cursor.components && cursor.components['auto-detect']) {
+            cursor.components['auto-detect'].lastTriggered = {};
+            console.log('🔄 Reset automático - permitindo novas detecções');
+        }
+    }, 2000); // Reset a cada 2 segundos
+}
 
 // Função para tentar carregar HDRI em diferentes formatos
 function loadHDRI() {
@@ -724,42 +712,29 @@ function loadHDRI() {
     tryNextFormat();
 }
 
-// Função de teste para debug de hover
+// Função de teste simples
 function createTestPlane() {
-    console.log('🧪 Criando plane de teste...');
-    
     const testPlane = document.createElement('a-plane');
     testPlane.setAttribute('position', '0 2 -3');
-    testPlane.setAttribute('width', '2');
-    testPlane.setAttribute('height', '2');
+    testPlane.setAttribute('width', '1');
+    testPlane.setAttribute('height', '1');
     testPlane.setAttribute('color', '#FF0000'); // Vermelho para ser visível
     testPlane.classList.add('clickable');
     testPlane.id = 'test-plane';
     
-    // Teste de hover/raycaster
-    testPlane.addEventListener('raycaster-intersection', function() {
-        console.log('🎉 TESTE: Raycaster funcionando!');
+    testPlane.addEventListener('raycaster-intersected', function() {
         testPlane.setAttribute('color', '#00FF00'); // Muda para verde
-    });
-    
-    // Teste de mouseenter como backup
-    testPlane.addEventListener('mouseenter', function() {
-        console.log('🎉 TESTE: MouseEnter funcionando!');
-        testPlane.setAttribute('color', '#0000FF'); // Muda para azul
+        console.log('🎉 TESTE: Raycaster-intersected funcionando!');
     });
     
     const container = document.getElementById('interactive-objects');
     if (container) {
         container.appendChild(testPlane);
-        console.log('✅ Plane de teste adicionado com classe clickable:', testPlane.classList.contains('clickable'));
     }
 }
 
-// Log de inicialização
-console.log('🚀 SAE RA - Experiência 360° Inicializada! Gire para explorar o cinturão de objetos!');
-
-// Criar plane de teste para debug
-setTimeout(createTestPlane, 2000); // Esperar 2 segundos para a cena carregar
+// Criar plane de teste 
+setTimeout(createTestPlane, 2000);
 
 // Tentar carregar HDRI
 loadHDRI(); 

@@ -1,26 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAE RA - Realidade Aumentada</title>
-    
+
     <!-- Estilos da aplicação -->
     <link rel="stylesheet" href="style.css">
-    
+
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 </head>
-<body>
-    <div class="info">
-        <div>SAE RA</div>
-        <div>Realidade Aumentada</div>
-    </div>
-    
+
+<body>    
     <div class="controls">
-        <div>🎯 MIRE no objeto = Peça aparece!</div>
-        <div>📱 Mobile: Aponte o centro da tela • 🖥️ Desktop: Hover</div>
-        <div>💡 Peças ACUMULAM - botão vermelho limpa</div>
         <button id="toggleMode" class="mode-button">🌅 Modo HDRI</button>
         <button id="clearPecas" class="mode-button" style="background: rgba(255, 0, 0, 0.8);">🗑️ Limpar Peças</button>
     </div>
@@ -32,65 +26,46 @@
     <!-- Vídeo da webcam como fundo -->
     <video id="webcam" autoplay muted playsinline></video>
 
-         <!-- Cena A-Frame AR -->
-     <a-scene 
-         vr-mode-ui="enabled: false"
-         background="transparent: true"
-         cursor="rayOrigin: mouse"
-         renderer="alpha: true; antialias: true; colorManagement: true;"
-         environment="preset: none; skyType: atmosphere; horizonColor: #212121; lightPosition: 0.5 0.8 -0.6;"
-     >
+    <!-- Cena A-Frame AR -->
+    <a-scene vr-mode-ui="enabled: false" background="transparent: true" cursor="rayOrigin: mouse"
+        renderer="alpha: true; antialias: true; colorManagement: true;"
+        environment="preset: none; skyType: atmosphere; horizonColor: #212121; lightPosition: 0.5 0.8 -0.6;">
         <!-- Assets -->
         <a-assets>
             <!-- Fallback: Gradient Sky -->
-            <img id="gradientSky" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAyNCIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAxMDI0IDUxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6Izg3Q0VFQjtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNGRkY7c3RvcC1vcGFjaXR5OjEiIC8+CjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzQ2ODJCNDtzdG9wLW9wYWNpdHk6MSIgLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTAyNCIgaGVpZ2h0PSI1MTIiIGZpbGw9InVybCgjZ3JhZGllbnQpIi8+Cjwvc3ZnPgo=" crossorigin="anonymous">
+            <img id="gradientSky"
+                src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAyNCIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAxMDI0IDUxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6Izg3Q0VFQjtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNGRkY7c3RvcC1vcGFjaXR5OjEiIC8+CjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzQ2ODJCNDtzdG9wLW9wYWNpdHk6MSIgLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iMTAyNCIgaGVpZ2h0PSI1MTIiIGZpbGw9InVybCgjZ3JhZGllbnQpIi8+Cjwvc3ZnPgo="
+                crossorigin="anonymous">
         </a-assets>
 
         <!-- Sky (Gradient como fallback) -->
-        <a-sky 
-            src="#gradientSky"
-            rotation="0 0 0"
-            visible="false"
-        ></a-sky>
+        <a-sky src="#gradientSky" rotation="0 0 0" visible="false"></a-sky>
 
         <!-- Luzes (reduzidas para combinar com HDRI) -->
         <a-light type="ambient" color="#FFFFFF" intensity="0.3"></a-light>
         <a-light type="directional" position="2 4 5" color="#FFFFFF" intensity="0.4"></a-light>
 
-                 <!-- Modelo 3D principal -->
-         <a-entity id="main-model" 
-                   gltf-model="" 
-                   position="0 0 0" 
-                   rotation="0 0 0" 
-                   scale="1 1 1">
-         </a-entity>
+        <!-- Modelo 3D principal -->
+        <a-entity id="main-model" gltf-model="" position="0 0 0" rotation="0 0 0" scale="1 1 1">
+        </a-entity>
 
-         <!-- Container para objetos interativos -->
-         <a-entity id="interactive-objects"></a-entity>
+        <!-- Container para objetos interativos -->
+        <a-entity id="interactive-objects"></a-entity>
 
-         <!-- As peças serão criadas dinamicamente quando clicadas -->
+        <!-- As peças serão criadas dinamicamente quando clicadas -->
 
-                 <!-- Câmera no centro do cinturão -->
-         <a-camera 
-             position="0 1.6 0"
-             look-controls="enabled: true"
-             wasd-controls="enabled: true"
-         >
-                           <a-cursor 
-                  color="#FF0000"
-                  cursor="rayOrigin: mouse"
-                                     raycaster="objects: .clickable; showLine: false; far: 1000; interval: 50"
-                  animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
-                  animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
-                  animation__mouseenter="property: scale; startEvents: raycaster-intersection; from: 1 1 1; to: 2.0 2.0 2.0; dur: 200"
-                  animation__mouseleave="property: scale; startEvents: raycaster-intersection-cleared; from: 2.0 2.0 2.0; to: 1 1 1; dur: 200"
-                  geometry="primitive: ring; radiusInner: 0.03; radiusOuter: 0.06"
-                  material="color: #FF0000; shader: flat"
-              ></a-cursor>
-         </a-camera>
+        <!-- Câmera no centro do cinturão -->
+        <a-camera position="0 1.6 0" look-controls="enabled: true" wasd-controls="enabled: true">
+            <!-- Sistema de detecção automática por direção da câmera -->
+            <a-entity 
+                id="main-cursor"
+                auto-detect=""
+            ></a-entity>
+        </a-camera>
     </a-scene>
 
     <!-- Script da aplicação (carregado por último) -->
     <script src="script.js"></script>
 </body>
+
 </html>
