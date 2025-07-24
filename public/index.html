@@ -186,17 +186,75 @@
             const interactiveElements = document.querySelectorAll('.interactive');
             
             interactiveElements.forEach(element => {
+                let isGlowing = false;
+                
                 element.addEventListener('click', function() {
-                    // Efeito de clique - mudança de cor temporária
-                    const originalColor = this.getAttribute('material').color;
-                    this.setAttribute('material', 'color', '#FFFFFF');
-                    
-                    setTimeout(() => {
-                        this.setAttribute('material', 'color', originalColor);
-                    }, 200);
-                    
-                    // Som de feedback (opcional)
-                    console.log('Objeto clicado!', this.tagName);
+                    if (!isGlowing) {
+                        // Armazenar propriedades originais
+                        const originalMaterial = this.getAttribute('material');
+                        this.setAttribute('data-original-color', originalMaterial.color);
+                        this.setAttribute('data-original-emissive', originalMaterial.emissive || '#000000');
+                        this.setAttribute('data-original-emissiveIntensity', originalMaterial.emissiveIntensity || '0');
+                        
+                        // Aplicar efeito rosa brilhante
+                        this.setAttribute('material', {
+                            color: '#FF69B4',           // Rosa vibrante
+                            emissive: '#FF1493',        // Rosa pink emissivo
+                            emissiveIntensity: 0.8,     // Intensidade alta para brilho
+                            metalness: 0.2,             // Menos metálico para mais brilho
+                            roughness: 0.1              // Mais liso para refletir mais luz
+                        });
+                        
+                        // Adicionar animação de pulsação
+                        this.setAttribute('animation__glow', {
+                            property: 'material.emissiveIntensity',
+                            to: 1.2,
+                            dur: 1000,
+                            loop: true,
+                            dir: 'alternate',
+                            easing: 'easeInOutSine'
+                        });
+                        
+                        // Adicionar leve aumento de escala
+                        this.setAttribute('animation__scale-glow', {
+                            property: 'scale',
+                            to: '1.1 1.1 1.1',
+                            dur: 300,
+                            easing: 'easeOutElastic'
+                        });
+                        
+                        isGlowing = true;
+                        console.log('Objeto ativado - BRILHANDO! ✨', this.tagName);
+                        
+                    } else {
+                        // Voltar ao estado original
+                        const originalColor = this.getAttribute('data-original-color');
+                        const originalEmissive = this.getAttribute('data-original-emissive');
+                        const originalEmissiveIntensity = this.getAttribute('data-original-emissiveIntensity');
+                        
+                        this.setAttribute('material', {
+                            color: originalColor,
+                            emissive: originalEmissive,
+                            emissiveIntensity: originalEmissiveIntensity,
+                            metalness: 0.3,
+                            roughness: 0.4
+                        });
+                        
+                        // Remover animações
+                        this.removeAttribute('animation__glow');
+                        this.removeAttribute('animation__scale-glow');
+                        
+                        // Voltar escala normal
+                        this.setAttribute('animation__scale-normal', {
+                            property: 'scale',
+                            to: '1 1 1',
+                            dur: 300,
+                            easing: 'easeOutElastic'
+                        });
+                        
+                        isGlowing = false;
+                        console.log('Objeto desativado - voltou ao normal', this.tagName);
+                    }
                 });
             });
             
