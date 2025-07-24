@@ -32,11 +32,15 @@ public/
 - Posicionado na localização do objeto original (ou fallback em círculo)
 
 ### 3. **Interação**
-- **Clique simples:** Cria nova `peca` permanente EM CIMA do objeto clicado
+- **Hover simples:** Passar cursor sobre objeto = cria nova `peca` permanente EM CIMA
+- **Raycaster:** Usa eventos `raycaster-intersection` do A-Frame (mais estável)
 - **Efeito dramático:** Peça aparece com animação popup (pequeno → grande → normal)
-- **Múltiplos cliques:** Criam múltiplas peças que se acumulam na cena
+- **Múltiplos hovers:** Criam múltiplas peças que se acumulam na cena
 - **Posicionamento:** Peça fica 0.8 unidades acima e 0.3 na frente do objeto
 - **Botão "Limpar Peças":** Remove todas as peças da cena
+- **Anti-repetição:** Cada objeto só pode gerar uma peça por sessão
+- **Tamanho aumentado:** Objetos agora são 2.0x2.0 (antes era 1.2x1.2)
+- **Raycaster otimizado:** Configurado com `far: 1000` e `interval: 100ms`
 
 ## 🎯 Sistema de IDs
 

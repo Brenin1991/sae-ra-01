@@ -25,128 +25,127 @@ AFRAME.registerComponent('interactive-object', {
         const el = this.el;
         const data = this.data;
         
-        // Função para lidar com interação (clique ou toque)
-        function handleInteraction(event) {
-            event.stopPropagation(); // Evitar que o clique se propague
-            console.log('🎯 Objeto interagido:', data.objectId);
+        // Função para criar peça permanente quando raycaster detecta intersecção
+        let alreadyTriggered = false;
+        
+        function showPecaOnIntersection(event) {
+            // Evitar multiple triggers do mesmo objeto
+            if (alreadyTriggered) return;
+            alreadyTriggered = true;
             
-            // Apenas mostrar peça - sem brilho rosa no objeto
-            showPeca(data.pecaSrc, el);
+            console.log('🎯 Cursor detectou objeto:', data.objectId);
+            
+            // Criar plane da peça permanente na frente do objeto
+            const pecaPlane = document.createElement('a-plane');
+            const objectPosition = el.getAttribute('position');
+            
+            console.log('📍 Posição do objeto:', objectPosition);
+            
+            // Posicionar peça em cima do objeto clicado
+            const pecaPosition = {
+                x: objectPosition.x,
+                y: objectPosition.y + 0.8, // 0.8 unidades acima do objeto
+                z: objectPosition.z - 0.3   // Um pouco na frente do objeto
+            };
+            
+            console.log('🎯 Peça vai aparecer em cima do objeto:', pecaPosition);
+            console.log('💥 INICIANDO EFEITO POPUP DRAMÁTICO!');
+            
+            pecaPlane.setAttribute('position', pecaPosition);
+            pecaPlane.setAttribute('width', '1.2');
+            pecaPlane.setAttribute('height', '1.2');
+            
+            // Começar invisível para efeito de aparecer
+            pecaPlane.setAttribute('scale', '0.1 0.1 0.1');
+            pecaPlane.setAttribute('color', '#FFFF00'); // Amarelo para teste
+            
+            // Efeito dramático de aparecer
+            pecaPlane.setAttribute('animation__popup', {
+                property: 'scale',
+                from: '0.1 0.1 0.1',
+                to: '1.3 1.3 1.3',
+                dur: 300
+            });
+            
+            // Depois volta ao tamanho normal
+            setTimeout(() => {
+                pecaPlane.setAttribute('animation__normalize', {
+                    property: 'scale',
+                    from: '1.3 1.3 1.3',
+                    to: '1 1 1',
+                    dur: 200
+                });
+                console.log('✨ Efeito popup finalizado - peça estabilizada!');
+            }, 300);
+            
+            // Carregar textura após animação
+            setTimeout(() => {
+                pecaPlane.setAttribute('material', {
+                    src: data.pecaSrc,
+                    transparent: true,
+                    alphaTest: 0.1,
+                    emissive: '#FFFFFF',
+                    emissiveIntensity: 0.4
+                });
+                console.log('🖼️ Textura aplicada:', data.pecaSrc);
+            }, 100);
+            
+            // Fazer a peça sempre olhar para a câmera
+            pecaPlane.setAttribute('billboard', '');
+            
+            // Adicionar brilho pulsante para chamar atenção
+            setTimeout(() => {
+                pecaPlane.setAttribute('animation__glow', {
+                    property: 'material.emissiveIntensity',
+                    from: 0.4,
+                    to: 0.8,
+                    dur: 1500,
+                    loop: true,
+                    dir: 'alternate'
+                });
+            }, 500);
+            
+            // ID único para cada peça
+            const timestamp = Date.now();
+            pecaPlane.id = 'peca-' + timestamp;
+            pecaPlane.classList.add('peca-plane');
+            
+            // Adicionar à cena
+            const container = document.getElementById('interactive-objects');
+            if (container) {
+                container.appendChild(pecaPlane);
+                console.log('✅ Peça permanente criada via hover!');
+            } else {
+                console.log('❌ ERRO: Container não encontrado');
+            }
         }
         
-        // Adicionar múltiplos event listeners para máxima compatibilidade
-        el.addEventListener('click', handleInteraction);
-        el.addEventListener('touchend', handleInteraction);
+        // As peças agora são permanentes - não esconder quando o cursor sai
+        
+        // Debug: adicionar logs para entender se o raycaster funciona
+        console.log('🔧 Adicionando event listener para', data.objectId);
+        
+        // Usar apenas eventos do raycaster do A-Frame (hover)
+        el.addEventListener('raycaster-intersection', function(event) {
+            console.log('🎯 RAYCASTER DETECTOU:', data.objectId);
+            showPecaOnIntersection(event);
+        });
+        
+        // Backup: adicionar mouseenter para desktop
+        el.addEventListener('mouseenter', function(event) {
+            console.log('🖱️ MOUSE ENTER detectado:', data.objectId);
+            showPecaOnIntersection(event);
+        });
+        
+        // Removido: raycaster-intersection-cleared - peças ficam permanentes
+        // Removido: click event - apenas hover agora
     }
 });
 
-// Função para mostrar peça
+// Função antiga showPeca (não mais usada - agora as peças são criadas no início)
+// Mantida apenas para compatibilidade se necessário
 function showPeca(pecaSrc, targetElement) {
-    console.log('🔧 Iniciando showPeca para:', pecaSrc);
-    
-    // NÃO esconder peças anteriores - deixar todas visíveis
-    
-    // Criar plane da peça na frente do objeto clicado
-    const pecaPlane = document.createElement('a-plane');
-    const objectPosition = targetElement.getAttribute('position');
-    
-    console.log('📍 Posição do objeto:', objectPosition);
-    
-    // Posicionar a peça EM CIMA do objeto clicado
-    console.log('📍 Posição do objeto clicado:', objectPosition);
-    
-    // Posicionar peça um pouco acima e na frente do objeto
-    const pecaPosition = {
-        x: objectPosition.x,
-        y: objectPosition.y + 0.8, // 0.8 unidades acima do objeto
-        z: objectPosition.z - 0.3   // Um pouco na frente do objeto
-    };
-    
-    console.log('🎯 Peça vai aparecer em cima do objeto:', pecaPosition);
-    console.log('💥 INICIANDO EFEITO POPUP DRAMÁTICO!');
-    
-    pecaPlane.setAttribute('position', pecaPosition);
-    pecaPlane.setAttribute('width', '1.2');
-    pecaPlane.setAttribute('height', '1.2');
-    
-    // Começar invisível para efeito de aparecer
-    pecaPlane.setAttribute('scale', '0.1 0.1 0.1');
-    pecaPlane.setAttribute('color', '#FFFF00'); // Amarelo para teste
-    
-    // Efeito dramático de aparecer
-    pecaPlane.setAttribute('animation__popup', {
-        property: 'scale',
-        from: '0.1 0.1 0.1',
-        to: '1.3 1.3 1.3',
-        dur: 300,
-        easing: 'easeOutBack'
-    });
-    
-    // Depois volta ao tamanho normal
-    setTimeout(() => {
-        pecaPlane.setAttribute('animation__normalize', {
-            property: 'scale',
-            from: '1.3 1.3 1.3',
-            to: '1 1 1',
-            dur: 200,
-            easing: 'easeInOut'
-        });
-        console.log('✨ Efeito popup finalizado - peça estabilizada!');
-    }, 300);
-    
-    // Carregar textura após animação
-    setTimeout(() => {
-        pecaPlane.setAttribute('material', {
-            src: pecaSrc,
-            transparent: true,
-            alphaTest: 0.1,
-            emissive: '#FFFFFF',
-            emissiveIntensity: 0.4
-        });
-        console.log('🖼️ Textura aplicada:', pecaSrc);
-    }, 100);
-    
-    // Fazer a peça sempre olhar para a câmera
-    pecaPlane.setAttribute('billboard', '');
-    
-    // Adicionar brilho pulsante para chamar atenção
-    setTimeout(() => {
-        pecaPlane.setAttribute('animation__glow', {
-            property: 'material.emissiveIntensity',
-            from: 0.4,
-            to: 0.8,
-            dur: 1500,
-            loop: true,
-            dir: 'alternate',
-            easing: 'easeInOutSine'
-        });
-    }, 500);
-    
-    // ID único para cada peça
-    const timestamp = Date.now();
-    pecaPlane.id = 'peca-' + timestamp;
-    pecaPlane.classList.add('peca-plane');
-    
-    // Adicionar à cena
-    const container = document.getElementById('interactive-objects');
-    if (container) {
-        container.appendChild(pecaPlane);
-        console.log('✅ Peça adicionada ao container');
-        
-        // Verificar se foi realmente adicionada
-        setTimeout(() => {
-            const addedPeca = document.getElementById(pecaPlane.id);
-            if (addedPeca) {
-                console.log('🎉 SUCESSO: Peça está na cena!', addedPeca.id);
-            } else {
-                console.log('❌ ERRO: Peça não foi encontrada na cena');
-            }
-        }, 200);
-    } else {
-        console.log('❌ ERRO: Container não encontrado');
-    }
-    
-    console.log('📋 Finalizando showPeca');
+    console.log('⚠️ showPeca() chamada mas não é mais usada - peças são criadas no hover');
 }
 
 // Função para esconder peça (não usada mais automaticamente)
@@ -156,7 +155,7 @@ function hidePeca() {
     console.log('ℹ️ hidePeca() chamada mas peças agora são permanentes');
 }
 
-// Função para limpar todas as peças
+// Função para limpar todas as peças permanentes
 function clearAllPecas() {
     const pecas = document.querySelectorAll('.peca-plane');
     let count = 0;
@@ -364,8 +363,8 @@ function createInteractivePlane(obj, container, index) {
     }
     
     plane.setAttribute('position', position);
-    plane.setAttribute('width', '1.2');
-    plane.setAttribute('height', '1.2');
+    plane.setAttribute('width', '2.0');
+    plane.setAttribute('height', '2.0');
     plane.setAttribute('material', {
         src: obj.imagem,
         transparent: true,
@@ -384,9 +383,49 @@ function createInteractivePlane(obj, container, index) {
     plane.setAttribute('cursor-listener', '');
     plane.classList.add('clickable');
     
+    // Debug: verificar se a classe foi adicionada
+    console.log(`🎯 Objeto ${obj.id} criado com classe clickable:`, plane.classList.contains('clickable'));
+    
     container.appendChild(plane);
     
+    // Criar peça correspondente (INVISÍVEL no início)
+    const pecaPlane = document.createElement('a-plane');
+    const pecaPosition = {
+        x: position.x,
+        y: position.y + 0.8, // 0.8 unidades acima do objeto
+        z: position.z - 0.3   // Um pouco na frente do objeto
+    };
+    
+    pecaPlane.setAttribute('position', pecaPosition);
+    pecaPlane.setAttribute('width', '2.0');
+    pecaPlane.setAttribute('height', '2.0');
+    pecaPlane.setAttribute('visible', 'false'); // INVISÍVEL no início
+    
+    // Fazer a peça sempre olhar para a câmera
+    pecaPlane.setAttribute('billboard', '');
+    
+    // ID único para cada peça
+    const timestamp = Date.now() + Math.random();
+    pecaPlane.id = 'peca-' + obj.id + '-' + timestamp;
+    pecaPlane.classList.add('peca-plane');
+    
+    // Carregar textura da peça
+    pecaPlane.setAttribute('material', {
+        src: obj.peca,
+        transparent: true,
+        alphaTest: 0.1,
+        emissive: '#FFFFFF',
+        emissiveIntensity: 0.4
+    });
+    
+    // Adicionar peça à cena
+    container.appendChild(pecaPlane);
+    
+    // Armazenar referência da peça no plane do objeto para fácil acesso
+    plane.pecaPlane = pecaPlane;
+    
     console.log(`✅ Plane criado para objeto ${obj.id} em`, position);
+    console.log(`✅ Peça criada para objeto ${obj.id} (inicialmente invisível)`);
     
     // Log de debug para verificar se os event listeners foram adicionados
     console.log(`🎧 Event listeners adicionados para objeto ${obj.id}`);
@@ -602,27 +641,34 @@ function loadHDRI() {
     tryNextFormat();
 }
 
-// Função de teste para debug de cliques
+// Função de teste para debug de hover
 function createTestPlane() {
     console.log('🧪 Criando plane de teste...');
     
     const testPlane = document.createElement('a-plane');
     testPlane.setAttribute('position', '0 2 -3');
-    testPlane.setAttribute('width', '1');
-    testPlane.setAttribute('height', '1');
+    testPlane.setAttribute('width', '2');
+    testPlane.setAttribute('height', '2');
     testPlane.setAttribute('color', '#FF0000'); // Vermelho para ser visível
     testPlane.classList.add('clickable');
     testPlane.id = 'test-plane';
     
-    testPlane.addEventListener('click', function() {
-        console.log('🎉 TESTE: Clique funcionando!');
+    // Teste de hover/raycaster
+    testPlane.addEventListener('raycaster-intersection', function() {
+        console.log('🎉 TESTE: Raycaster funcionando!');
         testPlane.setAttribute('color', '#00FF00'); // Muda para verde
+    });
+    
+    // Teste de mouseenter como backup
+    testPlane.addEventListener('mouseenter', function() {
+        console.log('🎉 TESTE: MouseEnter funcionando!');
+        testPlane.setAttribute('color', '#0000FF'); // Muda para azul
     });
     
     const container = document.getElementById('interactive-objects');
     if (container) {
         container.appendChild(testPlane);
-        console.log('✅ Plane de teste adicionado');
+        console.log('✅ Plane de teste adicionado com classe clickable:', testPlane.classList.contains('clickable'));
     }
 }
 

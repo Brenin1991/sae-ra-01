@@ -18,9 +18,15 @@
     </div>
     
     <div class="controls">
-        
-        <button id="toggleMode" class="mode-button">Modo HDRI</button>
+        <div>👆 Hover = Peça aparece PERMANENTE!</div>
+        <div>🔄 Gire para explorar • 💥 Efeito POPUP dramático</div>
+        <div>💡 Peças ACUMULAM - botão vermelho limpa</div>
+        <button id="toggleMode" class="mode-button">🌅 Modo HDRI</button>
         <button id="clearPecas" class="mode-button" style="background: rgba(255, 0, 0, 0.8);">🗑️ Limpar Peças</button>
+    </div>
+
+    <div class="ui">
+        <img class="lupa" src="assets/textures/lupa.png" alt="Lupa">
     </div>
 
     <!-- Vídeo da webcam como fundo -->
@@ -33,7 +39,6 @@
          cursor="rayOrigin: mouse"
          renderer="alpha: true; antialias: true; colorManagement: true;"
          environment="preset: none; skyType: atmosphere; horizonColor: #212121; lightPosition: 0.5 0.8 -0.6;"
-         raycaster="objects: .clickable"
      >
         <!-- Assets -->
         <a-assets>
@@ -74,7 +79,7 @@
              <a-cursor 
                  color="#FF69B4"
                  cursor="rayOrigin: mouse"
-                 raycaster="objects: .clickable; showLine: false"
+                 raycaster="objects: .clickable; showLine: true; far: 1000; interval: 100"
                  animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
                  animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
                  animation__mouseenter="property: scale; startEvents: raycaster-intersection; from: 1 1 1; to: 1.4 1.4 1.4; dur: 200"
