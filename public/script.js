@@ -219,9 +219,6 @@ AFRAME.registerComponent('interactive-object', {
         el.addEventListener('raycaster-intersected', showPecaOnIntersection);
         el.addEventListener('raycaster-intersected-cleared', hidePecaOnIntersectionCleared);
         
-        // Também adicionar eventos de mouse para desktop
-        el.addEventListener('mouseenter', showPecaOnIntersection);
-        el.addEventListener('mouseleave', hidePecaOnIntersectionCleared);
     }
 });
 
