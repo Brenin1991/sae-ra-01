@@ -12,8 +12,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
     console.log(`📱 Acesse: http://localhost:${PORT}`);
-    console.log(`📋 Para usar AR, acesse pelo celular em HTTPS ou localhost`);
+    console.log(`🌐 Acesse na rede: http://[seu-ip]:${PORT}`);
+    console.log(`📋 Para usar AR, acesse pelo celular em HTTPS ou pela rede local`);
 }); 

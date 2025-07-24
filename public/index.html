@@ -52,17 +52,18 @@
 <body>
     <div class="info">
         <div>SAE RA</div>
-        <div>Aponte a câmera ao redor</div>
+        <div>Objetos 3D à sua frente!</div>
     </div>
     
     <div class="controls">
         <div>Toque nos objetos para interagir</div>
+        <div>Mova o celular para explorar</div>
     </div>
 
     <!-- Cena A-Frame AR -->
     <a-scene
         vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        arjs="sourceType: webcam; debugUIEnabled: false;"
         renderer="logarithmicDepthBuffer: true; colorManagement: true; sortObjects: true;"
         embedded
     >
@@ -84,10 +85,8 @@
         <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
         <a-light type="directional" position="0 5 5" color="#ffffff" intensity="0.6"></a-light>
 
-        <!-- Marker AR invisível para posicionamento -->
-        <a-marker preset="hiro" id="main-marker">
-            <!-- Grupo de objetos AR -->
-            <a-group id="ar-objects">
+        <!-- Grupo de objetos AR (sem marker) -->
+        <a-entity id="ar-objects" position="0 0 -3">
                 
                 <!-- Esferas flutuantes -->
                 <a-sphere 
@@ -171,8 +170,7 @@
                     class="interactive"
                 ></a-torus>
 
-            </a-group>
-        </a-marker>
+        </a-entity>
 
         <!-- Câmera AR -->
         <a-entity camera 
@@ -202,14 +200,10 @@
                 });
             });
             
-            // Detectar quando o marker é encontrado
-            const marker = document.querySelector('#main-marker');
-            marker.addEventListener('markerFound', function() {
-                console.log('Marker detectado!');
-            });
-            
-            marker.addEventListener('markerLost', function() {
-                console.log('Marker perdido!');
+            // Log quando a cena carrega
+            const scene = document.querySelector('a-scene');
+            scene.addEventListener('loaded', function() {
+                console.log('Cena AR carregada!');
             });
         });
 
