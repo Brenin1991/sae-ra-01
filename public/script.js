@@ -1,33 +1,48 @@
-// Registrar componente de cursor listener
-AFRAME.registerComponent('cursor-listener', {
+// Variáveis globais
+let gameData = null;
+let currentPhase = 'fase1';
+let loadedModel = null;
+
+// Componente para fazer objetos sempre olharem para a câmera
+AFRAME.registerComponent('billboard', {
+    tick: function () {
+        const camera = document.querySelector('[camera]');
+        if (camera) {
+            this.el.object3D.lookAt(camera.object3D.position);
+        }
+    }
+});
+
+// Componente para objetos interativos
+AFRAME.registerComponent('interactive-object', {
+    schema: {
+        objectId: {type: 'string'},
+        imageSrc: {type: 'string'},
+        pecaSrc: {type: 'string'}
+    },
+    
     init: function () {
         const el = this.el;
+        const data = this.data;
         let isGlowing = false;
-        let originalColor = el.getAttribute('color');
-        
-        // Salvar cor original
-        el.setAttribute('data-original-color', originalColor);
         
         // Eventos de clique/toque
         el.addEventListener('click', function () {
-            console.log('Objeto clicado!', el.tagName);
+            console.log('🎯 Objeto clicado:', data.objectId);
             
             if (!isGlowing) {
-                // Ativar brilho rosa
-                el.setAttribute('color', '#FF69B4');
-                el.setAttribute('material', {
-                    color: '#FF69B4',
-                    emissive: '#FF1493',
-                    emissiveIntensity: 0.5
-                });
-                
-                // Animação de pulsação
+                // Ativar brilho
                 el.setAttribute('animation__glow', {
                     property: 'material.emissiveIntensity',
                     to: 0.8,
                     dur: 1000,
                     loop: true,
                     dir: 'alternate'
+                });
+                
+                el.setAttribute('material', {
+                    emissive: '#FF1493',
+                    emissiveIntensity: 0.5
                 });
                 
                 // Aumentar tamanho
@@ -38,21 +53,18 @@ AFRAME.registerComponent('cursor-listener', {
                 });
                 
                 isGlowing = true;
-                console.log('✨ BRILHANDO!');
+                
+                // Mostrar peça
+                showPeca(data.pecaSrc);
                 
             } else {
                 // Voltar ao normal
-                el.setAttribute('color', originalColor);
+                el.removeAttribute('animation__glow');
                 el.setAttribute('material', {
-                    color: originalColor,
                     emissive: '#000000',
                     emissiveIntensity: 0
                 });
                 
-                // Remover animações
-                el.removeAttribute('animation__glow');
-                
-                // Voltar tamanho normal
                 el.setAttribute('animation__scale', {
                     property: 'scale',
                     to: '1 1 1',
@@ -60,7 +72,9 @@ AFRAME.registerComponent('cursor-listener', {
                 });
                 
                 isGlowing = false;
-                console.log('🔄 Voltou ao normal');
+                
+                // Esconder peça
+                hidePeca();
             }
         });
         
@@ -86,6 +100,254 @@ AFRAME.registerComponent('cursor-listener', {
         });
     }
 });
+
+// Função para mostrar peça
+function showPeca(pecaSrc) {
+    const modal = document.getElementById('peca-modal');
+    const plane = document.getElementById('peca-plane');
+    
+    if (modal && plane) {
+        plane.setAttribute('material', 'src', pecaSrc);
+        modal.setAttribute('visible', true);
+        
+        // Posicionar na frente da câmera
+        const camera = document.querySelector('[camera]');
+        if (camera) {
+            const cameraPosition = camera.getAttribute('position');
+            modal.setAttribute('position', {
+                x: cameraPosition.x,
+                y: cameraPosition.y,
+                z: cameraPosition.z - 2
+            });
+        }
+        
+        console.log('📋 Mostrando peça:', pecaSrc);
+    }
+}
+
+// Função para esconder peça
+function hidePeca() {
+    const modal = document.getElementById('peca-modal');
+    if (modal) {
+        modal.setAttribute('visible', false);
+        console.log('❌ Peça escondida');
+    }
+}
+
+// Fechar peça ao clicar no fundo
+document.addEventListener('click', function(event) {
+    if (event.target.id === 'peca-background') {
+        hidePeca();
+    }
+});
+
+// Função para carregar dados do JSON
+async function loadGameData() {
+    try {
+        console.log('📊 Carregando dados do jogo...');
+        const response = await fetch('assets/data/data.json');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        gameData = await response.json();
+        console.log('✅ Dados carregados:', gameData);
+        
+        // Carregar fase atual
+        await loadPhase(currentPhase);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar dados:', error);
+    }
+}
+
+// Função para carregar uma fase
+async function loadPhase(phaseName) {
+    if (!gameData || !gameData[phaseName]) {
+        console.error('❌ Fase não encontrada:', phaseName);
+        return;
+    }
+    
+    const phaseData = gameData[phaseName];
+    console.log('🎮 Carregando fase:', phaseName);
+    
+    // Carregar modelo 3D
+    await loadModel(phaseData.model);
+    
+    // Configurar objetos interativos
+    setupInteractiveObjects(phaseData.objetos);
+}
+
+// Função para carregar modelo GLB
+function loadModel(modelPath) {
+    return new Promise((resolve, reject) => {
+        console.log('🏗️ Carregando modelo:', modelPath);
+        
+        const modelEntity = document.getElementById('main-model');
+        if (!modelEntity) {
+            reject('Elemento do modelo não encontrado');
+            return;
+        }
+        
+        modelEntity.setAttribute('gltf-model', modelPath);
+        
+        modelEntity.addEventListener('model-loaded', function() {
+            loadedModel = modelEntity.getObject3D('mesh');
+            console.log('✅ Modelo carregado com sucesso!');
+            
+            // Debug: listar todos os objetos no modelo
+            debugListModelObjects();
+            
+            resolve(loadedModel);
+        });
+        
+        modelEntity.addEventListener('model-error', function(error) {
+            console.error('❌ Erro ao carregar modelo:', error);
+            reject(error);
+        });
+    });
+}
+
+// Função para configurar objetos interativos
+function setupInteractiveObjects(objects) {
+    console.log('🎯 Configurando objetos interativos...');
+    
+    const container = document.getElementById('interactive-objects');
+    if (!container) {
+        console.error('❌ Container de objetos não encontrado');
+        return;
+    }
+    
+    // Limpar objetos existentes
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+    
+    objects.forEach((obj, index) => {
+        console.log(`🔧 Configurando objeto ${obj.id}...`);
+        
+        // Encontrar objeto no modelo e torná-lo transparente
+        if (loadedModel) {
+            hideObjectInModel(obj.id);
+        }
+        
+        // Criar plane interativo
+        createInteractivePlane(obj, container, index);
+    });
+}
+
+// Função para esconder objeto no modelo 3D
+function hideObjectInModel(objectId) {
+    if (!loadedModel) return;
+    
+    // Procurar objeto por nome/ID no modelo
+    loadedModel.traverse(function(child) {
+        if (child.name === objectId || child.name.includes(objectId)) {
+            console.log(`👻 Tornando transparente: ${child.name}`);
+            
+            if (child.material) {
+                child.material.transparent = true;
+                child.material.opacity = 0;
+                child.visible = false;
+            }
+        }
+    });
+}
+
+// Função para obter posição do objeto no modelo
+function getObjectPositionFromModel(objectId) {
+    if (!loadedModel) return null;
+    
+    let objectPosition = null;
+    
+    loadedModel.traverse(function(child) {
+        if (child.name === objectId || child.name.includes(objectId)) {
+            // Obter posição world do objeto
+            const worldPosition = new THREE.Vector3();
+            child.getWorldPosition(worldPosition);
+            objectPosition = worldPosition;
+            console.log(`📍 Posição encontrada para ${objectId}:`, worldPosition);
+        }
+    });
+    
+    return objectPosition;
+}
+
+// Função de debug para listar objetos do modelo
+function debugListModelObjects() {
+    if (!loadedModel) {
+        console.log('❌ Modelo não carregado para debug');
+        return;
+    }
+    
+    console.log('🔍 === DEBUG: Objetos no modelo ===');
+    
+    loadedModel.traverse(function(child) {
+        if (child.name && child.name !== '') {
+            const position = new THREE.Vector3();
+            child.getWorldPosition(position);
+            
+            console.log(`📦 Objeto: "${child.name}" | Tipo: ${child.type} | Posição:`, {
+                x: Math.round(position.x * 100) / 100,
+                y: Math.round(position.y * 100) / 100,
+                z: Math.round(position.z * 100) / 100
+            });
+        }
+    });
+    
+    console.log('🔍 === FIM DEBUG ===');
+}
+
+// Função para criar plane interativo
+function createInteractivePlane(obj, container, index) {
+    const plane = document.createElement('a-plane');
+    
+    // Tentar obter posição real do modelo, senão usar posição de fallback
+    let position = getObjectPositionFromModel(obj.id);
+    
+    if (!position) {
+        // Posição de fallback - distribuir em círculo
+        const angle = (index * 360 / 3) * Math.PI / 180;
+        const radius = 2;
+        position = {
+            x: Math.cos(angle) * radius,
+            y: 1.5 + (index * 0.2),
+            z: Math.sin(angle) * radius
+        };
+        console.log(`⚠️ Usando posição de fallback para ${obj.id}`);
+    } else {
+        // Ajustar posição para ficar um pouco à frente
+        position = {
+            x: position.x,
+            y: position.y + 0.3, // Elevar um pouco
+            z: position.z
+        };
+    }
+    
+    plane.setAttribute('position', position);
+    plane.setAttribute('width', '0.5');
+    plane.setAttribute('height', '0.5');
+    plane.setAttribute('material', {
+        src: obj.imagem,
+        transparent: true,
+        alphaTest: 0.1
+    });
+    
+    // Componentes
+    plane.setAttribute('billboard', '');
+    plane.setAttribute('interactive-object', {
+        objectId: obj.id,
+        imageSrc: obj.imagem,
+        pecaSrc: obj.peca
+    });
+    
+    plane.classList.add('clickable');
+    
+    container.appendChild(plane);
+    
+    console.log(`✅ Plane criado para objeto ${obj.id} em`, position);
+}
 
 // Inicializar webcam
 async function initWebcam() {
@@ -186,6 +448,12 @@ function toggleMode() {
         button.textContent = 'Modo AR';
         isARMode = false;
         
+        // Esconder objetos interativos em modo HDRI (opcional)
+        const interactiveContainer = document.getElementById('interactive-objects');
+        if (interactiveContainer) {
+            interactiveContainer.setAttribute('visible', 'true'); // Manter visível
+        }
+        
     } else {
         // Mudar para modo AR
         console.log('📱 Mudando para modo AR...');
@@ -233,6 +501,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (scene) {
         scene.addEventListener('loaded', function() {
             console.log('🎬 Cena A-Frame carregada!');
+            
+            // Carregar dados do jogo
+            loadGameData();
+            
             // Só inicializar novamente se o vídeo ainda não tem stream
             const video = document.getElementById('webcam');
             if (video && !video.srcObject && isARMode) {
@@ -265,7 +537,7 @@ function loadHDRI() {
             // Substituir o gradient pelo skybox real
             const sky = document.querySelector('a-sky');
             if (sky) {
-                sky.setAttribute('src', `assets/sky.${format}`);
+                sky.setAttribute('src', `assets/textures/sky.${format}`);
             }
         };
         
@@ -275,7 +547,7 @@ function loadHDRI() {
             tryNextFormat();
         };
         
-        img.src = `assets/sky.${format}`;
+        img.src = `assets/textures/sky.${format}`;
     }
     
     tryNextFormat();

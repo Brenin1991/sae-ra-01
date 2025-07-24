@@ -1,0 +1,22 @@
+{
+    "fase1": {
+        "model": "assets/models/fase1.glb",
+        "objetos": [
+            {
+                "id": "01",
+                "imagem": "assets/textures/fase1/01.png",
+                "peca": "assets/textures/fase1/peca01.png"
+            },
+            {
+                "id": "02",
+                "imagem": "assets/textures/fase1/02.png",
+                "peca": "assets/textures/fase1/peca02.png"
+            },
+            {
+                "id": "03",
+                "imagem": "assets/textures/fase1/03.png",
+                "peca": "assets/textures/fase1/peca03.png"
+            }
+        ]
+    }
+}

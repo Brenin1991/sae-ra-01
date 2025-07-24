@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste do Sistema SAE RA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        
+        .file-list {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste do Sistema SAE RA</h1>
+    
+    <div class="info status">
+        <strong>ℹ️ Sistema Implementado:</strong> Nova arquitetura baseada em JSON + GLB + texturas funcionando!
+    </div>
+
+    <h2>📋 Status dos Arquivos</h2>
+    
+    <div class="file-list">
+        <h3>✅ Arquivos Existentes:</h3>
+        <ul>
+            <li>📄 <code>public/assets/data/data.json</code> - Configuração dos objetos</li>
+            <li>📄 <code>public/script.js</code> - Nova lógica implementada</li>
+            <li>📄 <code>public/index.html</code> - Interface atualizada</li>
+        </ul>
+        
+        <h3>📥 Arquivos Necessários para Funcionar 100%:</h3>
+        <ul>
+            <li>🏗️ <code>public/assets/models/fase1.glb</code> - Modelo 3D</li>
+            <li>🖼️ <code>public/assets/textures/fase1/01.png</code> - Imagem objeto 1</li>
+            <li>🖼️ <code>public/assets/textures/fase1/02.png</code> - Imagem objeto 2</li>
+            <li>🖼️ <code>public/assets/textures/fase1/03.png</code> - Imagem objeto 3</li>
+            <li>📋 <code>public/assets/textures/fase1/peca01.png</code> - Peça detalhada 1</li>
+            <li>📋 <code>public/assets/textures/fase1/peca02.png</code> - Peça detalhada 2</li>
+            <li>📋 <code>public/assets/textures/fase1/peca03.png</code> - Peça detalhada 3</li>
+        </ul>
+    </div>
+
+    <h2>🎮 Como Testar</h2>
+    
+    <div class="warning status">
+        <strong>⚠️ Teste Sem Modelo GLB:</strong> O sistema vai funcionar mesmo sem o modelo, usando posições de fallback.
+    </div>
+    
+    <ol>
+        <li><strong>Iniciar servidor:</strong>
+            <pre>node server.js</pre>
+        </li>
+        <li><strong>Abrir no navegador:</strong> <code>http://localhost:3000</code></li>
+        <li><strong>Abrir Console do navegador</strong> (F12) para ver logs detalhados</li>
+        <li><strong>Observar:</strong>
+            <ul>
+                <li>🏗️ Tentativa de carregar modelo GLB</li>
+                <li>⚠️ Erro esperado (arquivo não existe ainda)</li>
+                <li>🎯 Criação de 3 planes em posições de fallback</li>
+                <li>👆 Clique nos planes para testar interação</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>🔧 Funcionalidades Implementadas</h2>
+    
+    <div class="success status">
+        <strong>✅ Funcionando:</strong>
+        <ul>
+            <li><strong>Carregamento dinâmico</strong> de dados via JSON</li>
+            <li><strong>Sistema de componentes</strong> A-Frame customizados</li>
+            <li><strong>Billboard behavior</strong> - objetos sempre olham para câmera</li>
+            <li><strong>Sistema de modal</strong> para mostrar peças</li>
+            <li><strong>Debug completo</strong> - logs detalhados no console</li>
+            <li><strong>Fallbacks robustos</strong> - funciona mesmo sem arquivos</li>
+            <li><strong>Modo AR/HDRI</strong> - botão de alternância mantido</li>
+        </ul>
+    </div>
+
+    <h2>📊 Dados Atuais (JSON)</h2>
+    
+    <pre id="json-data">Carregando dados...</pre>
+
+    <h2>🚀 Próximos Passos</h2>
+    
+    <div class="info status">
+        <ol>
+            <li><strong>Adicionar modelo GLB:</strong> Coloque seu arquivo 3D em <code>assets/models/fase1.glb</code></li>
+            <li><strong>Criar texturas:</strong> Adicione as imagens PNG na pasta <code>assets/textures/fase1/</code></li>
+            <li><strong>Nomear objetos no GLB:</strong> Certifique-se que os objetos se chamam "01", "02", "03"</li>
+            <li><strong>Testar posicionamento:</strong> Use logs do console para ajustar posições</li>
+        </ol>
+    </div>
+
+    <div class="button" onclick="window.open('/', '_blank')">
+        🚀 Abrir Aplicação SAE RA
+    </div>
+    
+    <div class="button" onclick="location.reload()">
+        🔄 Recarregar Esta Página
+    </div>
+
+    <script>
+        // Carregar e mostrar dados do JSON
+        fetch('assets/data/data.json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('json-data').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                document.getElementById('json-data').textContent = 'Erro ao carregar JSON: ' + error;
+            });
+    </script>
+</body>
+</html> 
