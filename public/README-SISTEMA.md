@@ -32,9 +32,11 @@ public/
 - Posicionado na localização do objeto original (ou fallback em círculo)
 
 ### 3. **Interação**
-- **Clique simples:** Ativa brilho rosa + mostra a `peca` em modal
-- **Segundo clique:** Remove brilho + esconde modal
-- **Clique no fundo:** Fecha modal
+- **Clique simples:** Ativa brilho rosa + cria nova `peca` permanente EM CIMA do objeto clicado
+- **Efeito dramático:** Peça aparece com animação popup (pequeno → grande → normal)
+- **Múltiplos cliques:** Criam múltiplas peças que se acumulam na cena
+- **Posicionamento:** Peça fica 0.8 unidades acima e 0.3 na frente do objeto
+- **Botão "Limpar Peças":** Remove todas as peças da cena
 
 ## 🎯 Sistema de IDs
 

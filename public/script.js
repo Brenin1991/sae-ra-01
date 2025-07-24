@@ -26,57 +26,41 @@ AFRAME.registerComponent('interactive-object', {
         const data = this.data;
         let isGlowing = false;
         
-        // Eventos de clique/toque
-        el.addEventListener('click', function () {
-            console.log('🎯 Objeto clicado:', data.objectId);
+        // Função para lidar com interação (clique ou toque)
+        function handleInteraction(event) {
+            event.stopPropagation(); // Evitar que o clique se propague
+            console.log('🎯 Objeto interagido:', data.objectId);
             
-            if (!isGlowing) {
-                // Ativar brilho
-                el.setAttribute('animation__glow', {
-                    property: 'material.emissiveIntensity',
-                    to: 0.8,
-                    dur: 1000,
-                    loop: true,
-                    dir: 'alternate'
-                });
-                
-                el.setAttribute('material', {
-                    emissive: '#FF1493',
-                    emissiveIntensity: 0.5
-                });
-                
-                // Aumentar tamanho
-                el.setAttribute('animation__scale', {
-                    property: 'scale',
-                    to: '1.2 1.2 1.2',
-                    dur: 300
-                });
-                
-                isGlowing = true;
-                
-                // Mostrar peça
-                showPeca(data.pecaSrc);
-                
-            } else {
-                // Voltar ao normal
-                el.removeAttribute('animation__glow');
-                el.setAttribute('material', {
-                    emissive: '#000000',
-                    emissiveIntensity: 0
-                });
-                
-                el.setAttribute('animation__scale', {
-                    property: 'scale',
-                    to: '1 1 1',
-                    dur: 300
-                });
-                
-                isGlowing = false;
-                
-                // Esconder peça
-                hidePeca();
-            }
-        });
+            // Sempre ativar brilho e mostrar peça
+            el.setAttribute('animation__glow', {
+                property: 'material.emissiveIntensity',
+                to: 0.8,
+                dur: 1000,
+                loop: true,
+                dir: 'alternate'
+            });
+            
+            el.setAttribute('material', {
+                emissive: '#FF1493',
+                emissiveIntensity: 0.5
+            });
+            
+            // Aumentar tamanho
+            el.setAttribute('animation__scale', {
+                property: 'scale',
+                to: '1.2 1.2 1.2',
+                dur: 300
+            });
+            
+            isGlowing = true;
+            
+            // Sempre mostrar peça
+            showPeca(data.pecaSrc, el);
+        }
+        
+        // Adicionar múltiplos event listeners para máxima compatibilidade
+        el.addEventListener('click', handleInteraction);
+        el.addEventListener('touchend', handleInteraction);
         
         // Feedback visual no hover
         el.addEventListener('mouseenter', function () {
@@ -102,44 +86,143 @@ AFRAME.registerComponent('interactive-object', {
 });
 
 // Função para mostrar peça
-function showPeca(pecaSrc) {
-    const modal = document.getElementById('peca-modal');
-    const plane = document.getElementById('peca-plane');
+function showPeca(pecaSrc, targetElement) {
+    console.log('🔧 Iniciando showPeca para:', pecaSrc);
     
-    if (modal && plane) {
-        plane.setAttribute('material', 'src', pecaSrc);
-        modal.setAttribute('visible', true);
+    // NÃO esconder peças anteriores - deixar todas visíveis
+    
+    // Criar plane da peça na frente do objeto clicado
+    const pecaPlane = document.createElement('a-plane');
+    const objectPosition = targetElement.getAttribute('position');
+    
+    console.log('📍 Posição do objeto:', objectPosition);
+    
+    // Posicionar a peça EM CIMA do objeto clicado
+    console.log('📍 Posição do objeto clicado:', objectPosition);
+    
+    // Posicionar peça um pouco acima e na frente do objeto
+    const pecaPosition = {
+        x: objectPosition.x,
+        y: objectPosition.y + 0.8, // 0.8 unidades acima do objeto
+        z: objectPosition.z - 0.3   // Um pouco na frente do objeto
+    };
+    
+    console.log('🎯 Peça vai aparecer em cima do objeto:', pecaPosition);
+    console.log('💥 INICIANDO EFEITO POPUP DRAMÁTICO!');
+    
+    pecaPlane.setAttribute('position', pecaPosition);
+    pecaPlane.setAttribute('width', '1.2');
+    pecaPlane.setAttribute('height', '1.2');
+    
+    // Começar invisível para efeito de aparecer
+    pecaPlane.setAttribute('scale', '0.1 0.1 0.1');
+    pecaPlane.setAttribute('color', '#FFFF00'); // Amarelo para teste
+    
+    // Efeito dramático de aparecer
+    pecaPlane.setAttribute('animation__popup', {
+        property: 'scale',
+        from: '0.1 0.1 0.1',
+        to: '1.3 1.3 1.3',
+        dur: 300,
+        easing: 'easeOutBack'
+    });
+    
+    // Depois volta ao tamanho normal
+    setTimeout(() => {
+        pecaPlane.setAttribute('animation__normalize', {
+            property: 'scale',
+            from: '1.3 1.3 1.3',
+            to: '1 1 1',
+            dur: 200,
+            easing: 'easeInOut'
+        });
+        console.log('✨ Efeito popup finalizado - peça estabilizada!');
+    }, 300);
+    
+    // Carregar textura após animação
+    setTimeout(() => {
+        pecaPlane.setAttribute('material', {
+            src: pecaSrc,
+            transparent: true,
+            alphaTest: 0.1,
+            emissive: '#FFFFFF',
+            emissiveIntensity: 0.4
+        });
+        console.log('🖼️ Textura aplicada:', pecaSrc);
+    }, 100);
+    
+    // Fazer a peça sempre olhar para a câmera
+    pecaPlane.setAttribute('billboard', '');
+    
+    // Adicionar brilho pulsante para chamar atenção
+    setTimeout(() => {
+        pecaPlane.setAttribute('animation__glow', {
+            property: 'material.emissiveIntensity',
+            from: 0.4,
+            to: 0.8,
+            dur: 1500,
+            loop: true,
+            dir: 'alternate',
+            easing: 'easeInOutSine'
+        });
+    }, 500);
+    
+    // ID único para cada peça
+    const timestamp = Date.now();
+    pecaPlane.id = 'peca-' + timestamp;
+    pecaPlane.classList.add('peca-plane');
+    
+    // Adicionar à cena
+    const container = document.getElementById('interactive-objects');
+    if (container) {
+        container.appendChild(pecaPlane);
+        console.log('✅ Peça adicionada ao container');
         
-        // Posicionar na frente da câmera
-        const camera = document.querySelector('[camera]');
-        if (camera) {
-            const cameraPosition = camera.getAttribute('position');
-            modal.setAttribute('position', {
-                x: cameraPosition.x,
-                y: cameraPosition.y,
-                z: cameraPosition.z - 2
-            });
-        }
-        
-        console.log('📋 Mostrando peça:', pecaSrc);
+        // Verificar se foi realmente adicionada
+        setTimeout(() => {
+            const addedPeca = document.getElementById(pecaPlane.id);
+            if (addedPeca) {
+                console.log('🎉 SUCESSO: Peça está na cena!', addedPeca.id);
+            } else {
+                console.log('❌ ERRO: Peça não foi encontrada na cena');
+            }
+        }, 200);
+    } else {
+        console.log('❌ ERRO: Container não encontrado');
     }
+    
+    console.log('📋 Finalizando showPeca');
 }
 
-// Função para esconder peça
+// Função para esconder peça (não usada mais automaticamente)
 function hidePeca() {
-    const modal = document.getElementById('peca-modal');
-    if (modal) {
-        modal.setAttribute('visible', false);
-        console.log('❌ Peça escondida');
-    }
+    // Esta função não é mais usada automaticamente
+    // As peças agora ficam permanentes até o usuário clicar "Limpar Peças"
+    console.log('ℹ️ hidePeca() chamada mas peças agora são permanentes');
 }
 
-// Fechar peça ao clicar no fundo
-document.addEventListener('click', function(event) {
-    if (event.target.id === 'peca-background') {
-        hidePeca();
-    }
-});
+// Função para limpar todas as peças
+function clearAllPecas() {
+    const pecas = document.querySelectorAll('.peca-plane');
+    let count = 0;
+    pecas.forEach(peca => {
+        peca.remove();
+        count++;
+    });
+    console.log(`🗑️ ${count} peça(s) removida(s)`);
+}
+
+// Comentar temporariamente para debug - peça não deve sumir
+// document.addEventListener('click', function(event) {
+//     console.log('🖱️ Clique detectado em:', event.target.tagName, event.target.classList);
+//     
+//     // Se clicou na cena ou no fundo, fechar peça
+//     if (event.target.tagName === 'A-SCENE' || 
+//         event.target.tagName === 'CANVAS' ||
+//         event.target.id === 'webcam') {
+//         hidePeca();
+//     }
+// });
 
 // Função para carregar dados do JSON
 async function loadGameData() {
@@ -326,8 +409,8 @@ function createInteractivePlane(obj, container, index) {
     }
     
     plane.setAttribute('position', position);
-    plane.setAttribute('width', '0.5');
-    plane.setAttribute('height', '0.5');
+    plane.setAttribute('width', '1.2');
+    plane.setAttribute('height', '1.2');
     plane.setAttribute('material', {
         src: obj.imagem,
         transparent: true,
@@ -342,11 +425,25 @@ function createInteractivePlane(obj, container, index) {
         pecaSrc: obj.peca
     });
     
+    // Tornar o plane clicável pelo cursor do A-Frame
+    plane.setAttribute('cursor-listener', '');
     plane.classList.add('clickable');
     
     container.appendChild(plane);
     
     console.log(`✅ Plane criado para objeto ${obj.id} em`, position);
+    
+    // Log de debug para verificar se os event listeners foram adicionados
+    console.log(`🎧 Event listeners adicionados para objeto ${obj.id}`);
+    
+    // Teste simples - adicionar evento de mouseover para debug
+    plane.addEventListener('mouseenter', function() {
+        console.log(`🎯 Mouse entrou no objeto ${obj.id}`);
+    });
+    
+    plane.addEventListener('mouseleave', function() {
+        console.log(`👋 Mouse saiu do objeto ${obj.id}`);
+    });
 }
 
 // Inicializar webcam
@@ -487,6 +584,12 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleButton.addEventListener('click', toggleMode);
     }
     
+    // Configurar botão de limpar peças
+    const clearButton = document.getElementById('clearPecas');
+    if (clearButton) {
+        clearButton.addEventListener('click', clearAllPecas);
+    }
+    
     // Inicializar em modo AR por padrão
     const sky = document.querySelector('a-sky');
     if (sky) {
@@ -553,8 +656,35 @@ function loadHDRI() {
     tryNextFormat();
 }
 
+// Função de teste para debug de cliques
+function createTestPlane() {
+    console.log('🧪 Criando plane de teste...');
+    
+    const testPlane = document.createElement('a-plane');
+    testPlane.setAttribute('position', '0 2 -3');
+    testPlane.setAttribute('width', '1');
+    testPlane.setAttribute('height', '1');
+    testPlane.setAttribute('color', '#FF0000'); // Vermelho para ser visível
+    testPlane.classList.add('clickable');
+    testPlane.id = 'test-plane';
+    
+    testPlane.addEventListener('click', function() {
+        console.log('🎉 TESTE: Clique funcionando!');
+        testPlane.setAttribute('color', '#00FF00'); // Muda para verde
+    });
+    
+    const container = document.getElementById('interactive-objects');
+    if (container) {
+        container.appendChild(testPlane);
+        console.log('✅ Plane de teste adicionado');
+    }
+}
+
 // Log de inicialização
 console.log('🚀 SAE RA - Experiência 360° Inicializada! Gire para explorar o cinturão de objetos!');
+
+// Criar plane de teste para debug
+setTimeout(createTestPlane, 2000); // Esperar 2 segundos para a cena carregar
 
 // Tentar carregar HDRI
 loadHDRI(); 
