@@ -421,8 +421,8 @@ function createInteractivePlane(obj, container, index) {
     }
     
     plane.setAttribute('position', position);
-    plane.setAttribute('width', '2.0');
-    plane.setAttribute('height', '2.0');
+    plane.setAttribute('width', '3.0');
+    plane.setAttribute('height', '3.0');
     plane.setAttribute('material', {
         src: obj.imagem,
         transparent: true,
@@ -452,8 +452,8 @@ function createInteractivePlane(obj, container, index) {
     };
     
     pecaPlane.setAttribute('position', pecaPosition);
-    pecaPlane.setAttribute('width', '2.0');
-    pecaPlane.setAttribute('height', '2.0');
+    pecaPlane.setAttribute('width', '3.0');
+    pecaPlane.setAttribute('height', '3.0');
     pecaPlane.setAttribute('visible', 'false'); // INVISÍVEL no início
     
     // Fazer a peça sempre olhar para a câmera
@@ -708,30 +708,6 @@ function loadHDRI() {
     
     tryNextFormat();
 }
-
-// Função de teste simples
-function createTestPlane() {
-    const testPlane = document.createElement('a-plane');
-    testPlane.setAttribute('position', '0 2 -3');
-    testPlane.setAttribute('width', '1');
-    testPlane.setAttribute('height', '1');
-    testPlane.setAttribute('color', '#FF0000'); // Vermelho para ser visível
-    testPlane.classList.add('clickable');
-    testPlane.id = 'test-plane';
-    
-    testPlane.addEventListener('raycaster-intersected', function() {
-        testPlane.setAttribute('color', '#00FF00'); // Muda para verde
-        console.log('🎉 TESTE: Raycaster-intersected funcionando!');
-    });
-    
-    const container = document.getElementById('interactive-objects');
-    if (container) {
-        container.appendChild(testPlane);
-    }
-}
-
-// Criar plane de teste 
-setTimeout(createTestPlane, 2000);
 
 // Tentar carregar HDRI
 loadHDRI(); 
