@@ -1,46 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAE RA - Experiência AR</title>
-    
+
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <!-- AR.js -->
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
-    
+
     <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
         }
-        
+
         .info {
             position: fixed;
             top: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 10px;
             border-radius: 5px;
             z-index: 1000;
             font-size: 14px;
         }
-        
+
         .controls {
             position: fixed;
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 10px;
             border-radius: 5px;
             z-index: 1000;
             text-align: center;
         }
-        
+
         @media (max-width: 768px) {
             .info {
                 font-size: 12px;
@@ -49,226 +48,203 @@
         }
     </style>
 </head>
+
 <body>
     <div class="info">
         <div>SAE RA</div>
-        <div>Objetos 3D à sua frente!</div>
-    </div>
-    
-    <div class="controls">
-        <div>Toque nos objetos para interagir</div>
-        <div>Mova o celular para explorar</div>
+        <div>Experiência 3D Interativa</div>
     </div>
 
-    <!-- Cena A-Frame AR -->
-    <a-scene
-        vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; debugUIEnabled: false;"
-        renderer="logarithmicDepthBuffer: true; colorManagement: true; sortObjects: true;"
-        embedded
-    >
+    <div class="controls">
+        <div>Toque nos objetos para ativar brilho</div>
+        <div>Use mouse/touch para explorar</div>
+    </div>
+
+    <!-- Cena A-Frame 3D -->
+    <a-scene vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true; colorManagement: true; sortObjects: true;" embedded
+        background="color: #001122">
         <!-- Assets -->
         <a-assets>
             <!-- Materiais -->
-            <a-mixin id="sphere-material" 
-                     material="color: #FF6B6B; metalness: 0.3; roughness: 0.4; emissive: #FF2222; emissiveIntensity: 0.1">
+            <a-mixin id="sphere-material"
+                material="color: #FF6B6B; metalness: 0.3; roughness: 0.4; emissive: #FF2222; emissiveIntensity: 0.1">
             </a-mixin>
-            <a-mixin id="cube-material" 
-                     material="color: #4ECDC4; metalness: 0.5; roughness: 0.2; emissive: #00AAAA; emissiveIntensity: 0.1">
+            <a-mixin id="cube-material"
+                material="color: #4ECDC4; metalness: 0.5; roughness: 0.2; emissive: #00AAAA; emissiveIntensity: 0.1">
             </a-mixin>
-            <a-mixin id="cube-material-2" 
-                     material="color: #FFE66D; metalness: 0.4; roughness: 0.3; emissive: #DDBB00; emissiveIntensity: 0.1">
+            <a-mixin id="cube-material-2"
+                material="color: #FFE66D; metalness: 0.4; roughness: 0.3; emissive: #DDBB00; emissiveIntensity: 0.1">
             </a-mixin>
         </a-assets>
 
         <!-- Luzes -->
-        <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
-        <a-light type="directional" position="0 5 5" color="#ffffff" intensity="0.6"></a-light>
+        <a-light type="ambient" color="#404040" intensity="0.6"></a-light>
+        <a-light type="directional" position="2 4 5" color="#ffffff" intensity="0.8"></a-light>
+        <a-light type="point" position="-2 3 1" color="#FF69B4" intensity="0.3"></a-light>
 
         <!-- Grupo de objetos AR (sem marker) -->
         <a-entity id="ar-objects" position="0 0 -3">
-                
-                <!-- Esferas flutuantes -->
-                <a-sphere 
-                    mixin="sphere-material"
-                    position="-2 1 0" 
-                    radius="0.3"
-                    animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"
-                    animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; pauseEvents: mouseleave"
-                    animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
-                    class="interactive"
-                ></a-sphere>
-                
-                <a-sphere 
-                    mixin="sphere-material"
-                    position="2 1.5 -1" 
-                    radius="0.25"
-                    animation="property: rotation; to: 360 0 360; loop: true; dur: 6000"
-                    animation__float="property: position; to: 2 2 -1; loop: true; dir: alternate; dur: 3000"
-                    animation__hover="property: scale; to: 1.3 1.3 1.3; startEvents: mouseenter; pauseEvents: mouseleave"
-                    animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
-                    class="interactive"
-                ></a-sphere>
-                
-                <a-sphere 
-                    mixin="sphere-material"
-                    position="0 2 -2" 
-                    radius="0.2"
-                    animation="property: rotation; to: 0 0 360; loop: true; dur: 4000"
-                    animation__hover="property: scale; to: 1.4 1.4 1.4; startEvents: mouseenter; pauseEvents: mouseleave"
-                    animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
-                    class="interactive"
-                ></a-sphere>
 
-                <!-- Cubos -->
-                <a-box 
-                    mixin="cube-material"
-                    position="-1 0.5 1" 
-                    width="0.4" 
-                    height="0.4" 
-                    depth="0.4"
-                    animation="property: rotation; to: 360 360 0; loop: true; dur: 10000"
-                    animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; pauseEvents: mouseleave"
-                    animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
-                    class="interactive"
-                ></a-box>
-                
-                <a-box 
-                    mixin="cube-material-2"
-                    position="1.5 0.3 0.5" 
-                    width="0.3" 
-                    height="0.6" 
-                    depth="0.3"
-                    animation="property: rotation; to: 0 360 360; loop: true; dur: 7000"
-                    animation__bounce="property: position; to: 1.5 0.8 0.5; loop: true; dir: alternate; dur: 2000"
-                    animation__hover="property: scale; to: 1.3 1.3 1.3; startEvents: mouseenter; pauseEvents: mouseleave"
-                    animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
-                    class="interactive"
-                ></a-box>
-                
-                <a-box 
-                    mixin="cube-material"
-                    position="-0.5 0.2 -1.5" 
-                    width="0.35" 
-                    height="0.35" 
-                    depth="0.35"
-                    animation="property: rotation; to: 360 0 360; loop: true; dur: 5000"
-                    animation__hover="property: scale; to: 1.25 1.25 1.25; startEvents: mouseenter; pauseEvents: mouseleave"
-                    animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
-                    class="interactive"
-                ></a-box>
+            <!-- Esferas flutuantes -->
+            <a-sphere mixin="sphere-material" position="-2 1 0" radius="0.3"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"
+                animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; pauseEvents: mouseleave"
+                animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
+                class="interactive"></a-sphere>
 
-                <!-- Objetos adicionais para mais diversão -->
-                <a-torus 
-                    position="0 1 1" 
-                    color="#9B59B6" 
-                    radius="0.3" 
-                    radius-tubular="0.05"
-                    animation="property: rotation; to: 360 360 360; loop: true; dur: 12000"
-                    animation__hover="property: scale; to: 1.3 1.3 1.3; startEvents: mouseenter; pauseEvents: mouseleave"
-                    animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
-                    class="interactive"
-                ></a-torus>
+            <a-sphere mixin="sphere-material" position="2 1.5 -1" radius="0.25"
+                animation="property: rotation; to: 360 0 360; loop: true; dur: 6000"
+                animation__float="property: position; to: 2 2 -1; loop: true; dir: alternate; dur: 3000"
+                animation__hover="property: scale; to: 1.3 1.3 1.3; startEvents: mouseenter; pauseEvents: mouseleave"
+                animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
+                class="interactive"></a-sphere>
+
+            <a-sphere mixin="sphere-material" position="0 2 -2" radius="0.2"
+                animation="property: rotation; to: 0 0 360; loop: true; dur: 4000"
+                animation__hover="property: scale; to: 1.4 1.4 1.4; startEvents: mouseenter; pauseEvents: mouseleave"
+                animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
+                class="interactive"></a-sphere>
+
+            <!-- Cubos -->
+            <a-box mixin="cube-material" position="-1 0.5 1" width="0.4" height="0.4" depth="0.4"
+                animation="property: rotation; to: 360 360 0; loop: true; dur: 10000"
+                animation__hover="property: scale; to: 1.2 1.2 1.2; startEvents: mouseenter; pauseEvents: mouseleave"
+                animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
+                class="interactive"></a-box>
+
+            <a-box mixin="cube-material-2" position="1.5 0.3 0.5" width="0.3" height="0.6" depth="0.3"
+                animation="property: rotation; to: 0 360 360; loop: true; dur: 7000"
+                animation__bounce="property: position; to: 1.5 0.8 0.5; loop: true; dir: alternate; dur: 2000"
+                animation__hover="property: scale; to: 1.3 1.3 1.3; startEvents: mouseenter; pauseEvents: mouseleave"
+                animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
+                class="interactive"></a-box>
+
+            <a-box mixin="cube-material" position="-0.5 0.2 -1.5" width="0.35" height="0.35" depth="0.35"
+                animation="property: rotation; to: 360 0 360; loop: true; dur: 5000"
+                animation__hover="property: scale; to: 1.25 1.25 1.25; startEvents: mouseenter; pauseEvents: mouseleave"
+                animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
+                class="interactive"></a-box>
+
+            <!-- Objetos adicionais para mais diversão -->
+            <a-torus position="0 1 1" color="#9B59B6" radius="0.3" radius-tubular="0.05"
+                animation="property: rotation; to: 360 360 360; loop: true; dur: 12000"
+                animation__hover="property: scale; to: 1.3 1.3 1.3; startEvents: mouseenter; pauseEvents: mouseleave"
+                animation__unhover="property: scale; to: 1 1 1; startEvents: mouseleave; pauseEvents: mouseenter"
+                class="interactive"></a-torus>
 
         </a-entity>
 
-        <!-- Câmera AR -->
-        <a-entity camera 
-                  look-controls-enabled="false" 
-                  arjs-look-controls='smoothingFactor: 0.1'
-                  arjs-device-orientation-controls="smoothingFactor: 0.1">
-        </a-entity>
+        <!-- Câmera 3D -->
+        <a-camera position="0 1.6 4" look-controls="enabled: true" wasd-controls="enabled: true"
+            cursor="rayOrigin: mouse">
+            <a-cursor color="#FF69B4"></a-cursor>
+        </a-camera>
     </a-scene>
 
     <script>
         // Interatividade com clique/toque
-        document.addEventListener('DOMContentLoaded', function() {
-            const interactiveElements = document.querySelectorAll('.interactive');
-            
-            interactiveElements.forEach(element => {
-                let isGlowing = false;
-                
-                element.addEventListener('click', function() {
-                    if (!isGlowing) {
-                        // Armazenar propriedades originais
-                        const originalMaterial = this.getAttribute('material');
-                        this.setAttribute('data-original-color', originalMaterial.color);
-                        this.setAttribute('data-original-emissive', originalMaterial.emissive || '#000000');
-                        this.setAttribute('data-original-emissiveIntensity', originalMaterial.emissiveIntensity || '0');
-                        
-                        // Aplicar efeito rosa brilhante
-                        this.setAttribute('material', {
-                            color: '#FF69B4',           // Rosa vibrante
-                            emissive: '#FF1493',        // Rosa pink emissivo
-                            emissiveIntensity: 0.8,     // Intensidade alta para brilho
-                            metalness: 0.2,             // Menos metálico para mais brilho
-                            roughness: 0.1              // Mais liso para refletir mais luz
+        document.addEventListener('DOMContentLoaded', function () {
+            const scene = document.querySelector('a-scene');
+
+            scene.addEventListener('loaded', function () {
+                console.log('Cena 3D carregada!');
+
+                const interactiveElements = document.querySelectorAll('.interactive');
+                console.log('Elementos interativos encontrados:', interactiveElements.length);
+
+                interactiveElements.forEach((element, index) => {
+                    let isGlowing = false;
+
+                    // Adicionar cursor component para melhor detecção
+                    element.setAttribute('cursor-listener', '');
+
+                    // Múltiplos event listeners para garantir compatibilidade
+                    ['click', 'mousedown', 'touchstart'].forEach(eventType => {
+                        element.addEventListener(eventType, function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log(`${eventType} detectado no objeto ${index}!`);
+
+                            handleObjectInteraction.call(this);
                         });
-                        
-                        // Adicionar animação de pulsação
-                        this.setAttribute('animation__glow', {
-                            property: 'material.emissiveIntensity',
-                            to: 1.2,
-                            dur: 1000,
-                            loop: true,
-                            dir: 'alternate',
-                            easing: 'easeInOutSine'
-                        });
-                        
-                        // Adicionar leve aumento de escala
-                        this.setAttribute('animation__scale-glow', {
-                            property: 'scale',
-                            to: '1.1 1.1 1.1',
-                            dur: 300,
-                            easing: 'easeOutElastic'
-                        });
-                        
-                        isGlowing = true;
-                        console.log('Objeto ativado - BRILHANDO! ✨', this.tagName);
-                        
-                    } else {
-                        // Voltar ao estado original
-                        const originalColor = this.getAttribute('data-original-color');
-                        const originalEmissive = this.getAttribute('data-original-emissive');
-                        const originalEmissiveIntensity = this.getAttribute('data-original-emissiveIntensity');
-                        
-                        this.setAttribute('material', {
-                            color: originalColor,
-                            emissive: originalEmissive,
-                            emissiveIntensity: originalEmissiveIntensity,
-                            metalness: 0.3,
-                            roughness: 0.4
-                        });
-                        
-                        // Remover animações
-                        this.removeAttribute('animation__glow');
-                        this.removeAttribute('animation__scale-glow');
-                        
-                        // Voltar escala normal
-                        this.setAttribute('animation__scale-normal', {
-                            property: 'scale',
-                            to: '1 1 1',
-                            dur: 300,
-                            easing: 'easeOutElastic'
-                        });
-                        
-                        isGlowing = false;
-                        console.log('Objeto desativado - voltou ao normal', this.tagName);
+                    });
+
+                    function handleObjectInteraction() {
+                        if (!isGlowing) {
+                            // Armazenar propriedades originais
+                            const originalMaterial = this.getAttribute('material');
+                            this.setAttribute('data-original-color', originalMaterial.color);
+                            this.setAttribute('data-original-emissive', originalMaterial.emissive || '#000000');
+                            this.setAttribute('data-original-emissiveIntensity', originalMaterial.emissiveIntensity || '0');
+
+                            // Aplicar efeito rosa brilhante
+                            this.setAttribute('material', {
+                                color: '#FF69B4',           // Rosa vibrante
+                                emissive: '#FF1493',        // Rosa pink emissivo
+                                emissiveIntensity: 0.8,     // Intensidade alta para brilho
+                                metalness: 0.2,             // Menos metálico para mais brilho
+                                roughness: 0.1              // Mais liso para refletir mais luz
+                            });
+
+                            // Adicionar animação de pulsação
+                            this.setAttribute('animation__glow', {
+                                property: 'material.emissiveIntensity',
+                                to: 1.2,
+                                dur: 1000,
+                                loop: true,
+                                dir: 'alternate',
+                                easing: 'easeInOutSine'
+                            });
+
+                            // Adicionar leve aumento de escala
+                            this.setAttribute('animation__scale-glow', {
+                                property: 'scale',
+                                to: '1.1 1.1 1.1',
+                                dur: 300,
+                                easing: 'easeOutElastic'
+                            });
+
+                            isGlowing = true;
+                            console.log('Objeto ativado - BRILHANDO! ✨', this.tagName);
+
+                        } else {
+                            // Voltar ao estado original
+                            const originalColor = this.getAttribute('data-original-color');
+                            const originalEmissive = this.getAttribute('data-original-emissive');
+                            const originalEmissiveIntensity = this.getAttribute('data-original-emissiveIntensity');
+
+                            this.setAttribute('material', {
+                                color: originalColor,
+                                emissive: originalEmissive,
+                                emissiveIntensity: originalEmissiveIntensity,
+                                metalness: 0.3,
+                                roughness: 0.4
+                            });
+
+                            // Remover animações
+                            this.removeAttribute('animation__glow');
+                            this.removeAttribute('animation__scale-glow');
+
+                            // Voltar escala normal
+                            this.setAttribute('animation__scale-normal', {
+                                property: 'scale',
+                                to: '1 1 1',
+                                dur: 300,
+                                easing: 'easeOutElastic'
+                            });
+
+                            isGlowing = false;
+                            console.log('Objeto desativado - voltou ao normal', this.tagName);
+                        }
                     }
                 });
             });
-            
-            // Log quando a cena carrega
-            const scene = document.querySelector('a-scene');
-            scene.addEventListener('loaded', function() {
-                console.log('Cena AR carregada!');
-            });
         });
 
-        // Verificar suporte a webcam
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert('Seu navegador não suporta acesso à câmera. Use um navegador mais recente.');
-        }
+        // Log de inicialização
+        console.log('SAE RA - Experiência 3D Inicializada!');
     </script>
 </body>
-</html> 
+
+</html>
