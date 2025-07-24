@@ -38,6 +38,13 @@ body {
     pointer-events: none;
 }
 
+.camera-icon {
+    position: fixed;
+    top: 15%;
+    left: 42%;
+    z-index: 2100;
+}
+
 .lupa {
     position: fixed;
     top: 25%;
