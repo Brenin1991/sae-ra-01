@@ -28,8 +28,8 @@
                 "peca": "assets/textures/fase1/quebracabeca/fase1-01.png",
                 "target": "assets/textures/fase1/quebracabeca/fase1-01-target.png",
                 "position": {
-                    "x": 120,
-                    "y": 0,
+                    "x": 45,
+                    "y": 20,
                     "description": "Topo central"
                 }
             },
@@ -38,8 +38,8 @@
                 "peca": "assets/textures/fase1/quebracabeca/fase1-02.png",
                 "target": "assets/textures/fase1/quebracabeca/fase1-02-target.png",
                 "position": {
-                    "x": 0,
-                    "y": 60,
+                    "x": -10,
+                    "y": 10,
                     "description": "Lateral esquerda"
                 }
             },
@@ -48,8 +48,8 @@
                 "peca": "assets/textures/fase1/quebracabeca/fase1-03.png",
                 "target": "assets/textures/fase1/quebracabeca/fase1-03-target.png",
                 "position": {
-                    "x": 240,
-                    "y": 60,
+                    "x": 198,
+                    "y": 28,
                     "description": "Lateral direita"
                 }
             },
@@ -58,8 +58,8 @@
                 "peca": "assets/textures/fase1/quebracabeca/fase1-04.png",
                 "target": "assets/textures/fase1/quebracabeca/fase1-04-target.png",
                 "position": {
-                    "x": 60,
-                    "y": 120,
+                    "x": 127,
+                    "y": 28,
                     "description": "Base esquerda"
                 }
             },
@@ -68,8 +68,8 @@
                 "peca": "assets/textures/fase1/quebracabeca/fase1-05.png",
                 "target": "assets/textures/fase1/quebracabeca/fase1-05-target.png",
                 "position": {
-                    "x": 180,
-                    "y": 120,
+                    "x": -15,
+                    "y": 95,
                     "description": "Base direita"
                 }
             }

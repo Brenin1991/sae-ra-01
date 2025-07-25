@@ -48,8 +48,12 @@ class PuzzleManager {
             const response = await fetch('assets/data/data.json');
             const data = await response.json();
             
+            console.log('🔍 Dados completos carregados:', data);
+            
             if (data[phaseName] && data[phaseName].quebracabeca) {
                 const quebracabeca = data[phaseName].quebracabeca;
+                
+                console.log('🔍 Array quebracabeca completo:', quebracabeca);
                 
                 // Separar configuração (primeiro item) das peças (resto)
                 this.puzzleConfig = quebracabeca[0];
@@ -59,6 +63,7 @@ class PuzzleManager {
                 console.log(`🧩 Dados do quebra-cabeça carregados: ${this.totalPieces} peças`);
                 console.log(`🧩 Base: ${this.puzzleConfig.base}`);
                 console.log(`🧩 Resultado: ${this.puzzleConfig.resultado}`);
+                console.log('🔍 Peças com posições:', this.puzzleData);
                 return true;
             } else {
                 console.error('❌ Dados do quebra-cabeça não encontrados');
@@ -151,17 +156,30 @@ class PuzzleManager {
         targetsContainer.innerHTML = '';
         this.targets = [];
         
+        console.log('🔍 Dados das peças para posicionamento:', this.puzzleData);
+        
         this.puzzleData.forEach((pieceData, index) => {
             const target = document.createElement('div');
             target.className = 'puzzle-target';
             target.dataset.targetId = pieceData.id;
             target.dataset.targetIndex = index;
             
+            console.log(`🔍 Verificando peça ${pieceData.id}:`, pieceData);
+            
             // Aplicar posição customizada se disponível
             if (pieceData.position) {
                 target.style.left = `${pieceData.position.x}px`;
                 target.style.top = `${pieceData.position.y}px`;
-                console.log(`🧩 Target ${pieceData.id} posicionado em (${pieceData.position.x}, ${pieceData.position.y})`);
+                console.log(`✅ Target ${pieceData.id} posicionado em (${pieceData.position.x}, ${pieceData.position.y})`);
+                
+                // Verificar se a posição foi aplicada
+                setTimeout(() => {
+                    const computedLeft = window.getComputedStyle(target).left;
+                    const computedTop = window.getComputedStyle(target).top;
+                    console.log(`🔍 Target ${pieceData.id} - CSS aplicado: left=${computedLeft}, top=${computedTop}`);
+                }, 100);
+            } else {
+                console.warn(`⚠️ Peça ${pieceData.id} não tem posição definida`);
             }
             
             const img = document.createElement('img');
