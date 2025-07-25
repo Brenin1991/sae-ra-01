@@ -214,9 +214,69 @@ input, textarea {
 
 #ui .camera-icon {
     position: fixed;
-    top: 15%;
-    left: 42%;
+    bottom: 5%;
+    right: 10%;
     z-index: 2100;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+#ui .camera-icon:hover {
+    transform: scale(1.1);
+}
+
+#ui .camera-icon:active {
+    transform: scale(0.95);
+}
+
+/* Efeito de flash da câmera */
+.camera-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s ease-out;
+}
+
+.camera-flash.active {
+    opacity: 1;
+    animation: flashEffect 0.3s ease-out;
+}
+
+@keyframes flashEffect {
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes feedbackFade {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
 }
 
 #ui .lupa {

@@ -809,6 +809,9 @@ function integrateWithScreenManager() {
         // Carregar dados do jogo
         loadGameData();
         
+        // Configurar botão da câmera
+        setupCameraButton();
+        
         // Chamar função original se existir
         if (originalOnUIEnter) {
             originalOnUIEnter.call(this);
@@ -843,4 +846,143 @@ function integrateWithScreenManager() {
     // });
     
     console.log('✅ Sistema de gerenciamento de telas integrado!');
+}
+
+// Função para configurar o botão da câmera
+function setupCameraButton() {
+    const cameraButton = document.getElementById('camera-icon');
+    if (cameraButton) {
+        cameraButton.addEventListener('click', function() {
+            console.log('📸 Botão da câmera clicado!');
+            triggerCameraFlash();
+        });
+        
+        console.log('📷 Botão da câmera configurado');
+    }
+}
+
+// Função para ativar o efeito de flash
+function triggerCameraFlash() {
+    const flashElement = document.getElementById('camera-flash');
+    if (flashElement) {
+        // Adicionar classe para ativar o flash
+        flashElement.classList.add('active');
+        
+        // Remover classe após a animação
+        setTimeout(() => {
+            flashElement.classList.remove('active');
+        }, 300);
+        
+        console.log('⚡ Efeito de flash ativado!');
+        
+        // Tocar som de câmera (opcional)
+        playCameraSound();
+        
+        // Vibrar dispositivo (se suportado)
+        vibrateDevice();
+        
+        // Detectar se há peças visíveis
+        checkVisiblePieces();
+        
+        // Aqui você pode adicionar lógica adicional, como:
+        // - Salvar a foto
+        // - Capturar o estado atual da tela
+        // - Mostrar feedback visual
+    }
+}
+
+// Função para tocar som de câmera
+function playCameraSound() {
+    try {
+        // Criar contexto de áudio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Gerar som de "click" da câmera
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Configurar som
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        
+        // Tocar som
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+        
+        console.log('🔊 Som de câmera tocado');
+    } catch (error) {
+        console.log('🔇 Som de câmera não disponível:', error.message);
+    }
+}
+
+// Função para vibrar dispositivo
+function vibrateDevice() {
+    if (navigator.vibrate) {
+        // Vibrar por 100ms
+        navigator.vibrate(100);
+        console.log('📳 Dispositivo vibrou');
+    }
+}
+
+// Função para verificar peças visíveis
+function checkVisiblePieces() {
+    // Verificar se há peças ativas na cena
+    const activePieces = document.querySelectorAll('.peca-ativa');
+    const visiblePieces = Array.from(activePieces).filter(piece => {
+        const rect = piece.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+    });
+    
+    if (visiblePieces.length > 0) {
+        console.log(`📸 Foto tirada com ${visiblePieces.length} peça(s) visível(is)!`);
+        
+        // Mostrar feedback positivo
+        showPhotoFeedback(true, visiblePieces.length);
+    } else {
+        console.log('📸 Foto tirada sem peças visíveis');
+        
+        // Mostrar feedback negativo
+        showPhotoFeedback(false, 0);
+    }
+}
+
+// Função para mostrar feedback da foto
+function showPhotoFeedback(success, pieceCount) {
+    // Criar elemento de feedback
+    const feedback = document.createElement('div');
+    feedback.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        background: ${success ? 'rgba(0, 255, 0, 0.9)' : 'rgba(255, 0, 0, 0.9)'};
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        animation: feedbackFade 2s ease-out forwards;
+    `;
+    
+    feedback.textContent = success 
+        ? `📸 Foto tirada! ${pieceCount} peça(s) capturada(s)`
+        : '📸 Nenhuma peça encontrada na foto';
+    
+    document.body.appendChild(feedback);
+    
+    // Remover feedback após 2 segundos
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.parentNode.removeChild(feedback);
+        }
+    }, 2000);
 } 
