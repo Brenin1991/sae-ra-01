@@ -21,11 +21,14 @@
     </div>
 
     <div id="main">
-        <button id="main-button" class="main-button" style="background: rgba(255, 0, 0, 0.8);">INICIAR</button>
+        <button id="main-button" class="main-button"></button>
     </div>
 
     <div id="tutorial">
-        <button id="main-button" class="main-button" style="background: rgba(255, 0, 0, 0.8);">INICIAR</button>
+        <div id="tutorial-content">
+            <button id="tutorial-button" class="main-button"></button>
+            <button id="narracao-button" class="narracao-button"></button>
+        </div>
     </div>
 
     <div id="ui">
@@ -76,7 +79,8 @@
         </a-camera>
     </a-scene>
 
-    <!-- Script da aplicação (carregado por último) -->
+    <!-- Scripts da aplicação (carregados por último) -->
+    <script src="screen-manager.js"></script>
     <script src="script.js"></script>
 </body>
 

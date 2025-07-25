@@ -1,6 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
     viewportUnitsBuggyfill.init();
     viewportUnitsBuggyfill.refresh();
+    
+    // Aguardar o ScreenManager ser inicializado
+    setTimeout(() => {
+        if (window.screenManager) {
+            // Integrar com o sistema de gerenciamento de telas
+            integrateWithScreenManager();
+        }
+    }, 100);
 });
 
 // Variáveis globais
@@ -715,4 +723,55 @@ function loadHDRI() {
 }
 
 // Tentar carregar HDRI
-loadHDRI(); 
+loadHDRI();
+
+// Função para integrar com o sistema de gerenciamento de telas
+function integrateWithScreenManager() {
+    if (!window.screenManager) return;
+    
+    // Sobrescrever as funções de entrada das telas para incluir lógica específica
+    const originalOnUIEnter = window.screenManager.onUIEnter;
+    window.screenManager.onUIEnter = function() {
+        console.log('🎮 Iniciando experiência AR...');
+        
+        // Inicializar webcam quando entrar na UI
+        initWebcam();
+        
+        // Carregar dados do jogo
+        loadGameData();
+        
+        // Chamar função original se existir
+        if (originalOnUIEnter) {
+            originalOnUIEnter.call(this);
+        }
+    };
+    
+    const originalOnUIExit = window.screenManager.onUIExit;
+    window.screenManager.onUIExit = function() {
+        console.log('🛑 Finalizando experiência AR...');
+        
+        // Limpar peças quando sair da UI
+        clearAllPecas();
+        
+        // Chamar função original se existir
+        if (originalOnUIExit) {
+            originalOnUIExit.call(this);
+        }
+    };
+    
+    // Exemplo de como adicionar uma nova tela dinamicamente
+    // window.screenManager.addScreen('results', {
+    //     elementId: 'results-screen',
+    //     next: 'main',
+    //     onEnter: () => {
+    //         console.log('Mostrando resultados...');
+    //         // Lógica para mostrar resultados
+    //     },
+    //     onExit: () => {
+    //         console.log('Saindo dos resultados...');
+    //         // Lógica para limpar resultados
+    //     }
+    // });
+    
+    console.log('✅ Sistema de gerenciamento de telas integrado!');
+} 

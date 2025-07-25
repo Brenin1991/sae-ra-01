@@ -45,6 +45,29 @@ body {
     width: 100vw;
     height: 100vh;
     display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#main-button{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2100;
+    width: 200px;
+    height: 75px;
+    background-image: url(assets/textures/btn-jogar.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 #tutorial {
@@ -56,6 +79,60 @@ body {
     width: 100vw;
     height: 100vh;
     display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+#tutorial-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2100;
+    width: 80vw;
+    height: 60vh;
+    background-image: url(assets/textures/tutorial-text.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#tutorial-button {
+    position: fixed;
+    bottom: -15%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2100;
+    width: 260px;
+    height: 75px;
+    background-image: url(assets/textures/btn-comecar.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+#narracao-button {
+    position: fixed;
+    top: -5%;
+    left: 8%;
+    transform: translate(-50%, -50%);
+    z-index: 2100;
+    width: 50px;
+    height: 50px;
+    background-image: url(assets/textures/narracao-icon.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    border: none;
+    outline: none;
 }
 
 
@@ -64,6 +141,9 @@ body {
     height: 100vh;
     width: 100vw;
     z-index: 10000;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
 #ui .camera-icon {
