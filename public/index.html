@@ -35,6 +35,65 @@
     <div id="ui">
         <img id="camera-icon" class="camera-icon" src="assets/textures/camera-icon.png" alt="Camera">        
         <img id="lupa" class="lupa" src="assets/textures/lupa.png" alt="Lupa">
+        
+        <!-- Contador de peças fotografadas -->
+        <div id="photo-counter" class="photo-counter">
+            <span id="photo-count">0</span> de <span id="total-pieces">0</span> peças fotografadas
+        </div>
+    </div>
+
+    <!-- Tela do Quebra-Cabeça -->
+    <div id="puzzle-screen" class="puzzle-screen">
+        <div class="puzzle-header">
+            <h2>🧩 Quebra-Cabeça</h2>
+            <p>Arraste as peças para os locais corretos!</p>
+        </div>
+        
+        <div class="puzzle-container">
+            <!-- Área de peças (lado esquerdo) -->
+            <div class="pieces-area">
+                <h3>Peças</h3>
+                <div id="puzzle-pieces" class="puzzle-pieces">
+                    <!-- Peças serão criadas dinamicamente -->
+                </div>
+            </div>
+            
+            <!-- Área de montagem (lado direito) -->
+            <div class="assembly-area">
+                <h3>Montagem</h3>
+                <div id="puzzle-targets" class="puzzle-targets">
+                    <!-- Targets serão criados dinamicamente -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="puzzle-controls">
+            <button id="reset-puzzle" class="puzzle-button">🔄 Reiniciar</button>
+            <button id="back-to-ar" class="puzzle-button">⬅️ Voltar ao AR</button>
+        </div>
+    </div>
+
+    <!-- Tela de Parabéns -->
+    <div id="congratulations-screen" class="congratulations-screen">
+        <div class="congratulations-content">
+            <div class="congratulations-icon">🎉</div>
+            <h1>Parabéns!</h1>
+            <p>Você completou o quebra-cabeça com sucesso!</p>
+            <div class="congratulations-stats">
+                <div class="stat">
+                    <span class="stat-number" id="total-pieces-completed">0</span>
+                    <span class="stat-label">peças montadas</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="time-taken">0</span>
+                    <span class="stat-label">segundos</span>
+                </div>
+            </div>
+            <div class="congratulations-buttons">
+                <button id="play-again" class="congratulations-button">🔄 Jogar Novamente</button>
+                <button id="back-to-main" class="congratulations-button">🏠 Voltar ao Início</button>
+            </div>
+        </div>
     </div>
 
     <!-- Efeito de flash da câmera -->
@@ -85,6 +144,7 @@
 
     <!-- Scripts da aplicação (carregados por último) -->
     <script src="screen-manager.js"></script>
+    <script src="puzzle-manager.js"></script>
     <script src="script.js"></script>
 </body>
 

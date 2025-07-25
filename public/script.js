@@ -812,6 +812,12 @@ function integrateWithScreenManager() {
         // Configurar botão da câmera
         setupCameraButton();
         
+        // Resetar peças fotografadas ao entrar na UI
+        resetPhotographedPieces();
+        
+        // Inicializar contador de peças
+        initPhotoCounter();
+        
         // Chamar função original se existir
         if (originalOnUIEnter) {
             originalOnUIEnter.call(this);
@@ -824,6 +830,9 @@ function integrateWithScreenManager() {
         
         // Limpar peças quando sair da UI
         clearAllPecas();
+        
+        // Resetar peças fotografadas ao sair da UI
+        resetPhotographedPieces();
         
         // Chamar função original se existir
         if (originalOnUIExit) {
@@ -947,19 +956,26 @@ function checkVisiblePieces() {
                           rect.bottom <= window.innerHeight && 
                           rect.right <= window.innerWidth;
         
-        return isVisible && isOnScreen;
+        // Verificar se NÃO foi fotografada ainda
+        const notPhotographed = !isPiecePhotographed(piece);
+        
+        return isVisible && isOnScreen && notPhotographed;
     });
     
     // Método 2: Verificar por estilo CSS (backup)
     const cssVisiblePieces = Array.from(allPieces).filter(piece => {
         const style = window.getComputedStyle(piece);
-        return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        const notPhotographed = !isPiecePhotographed(piece);
+        return isVisible && notPhotographed;
     });
     
     // Método 3: Verificar por A-Frame object3D (mais preciso)
     const aframeVisiblePieces = Array.from(allPieces).filter(piece => {
         if (piece.object3D) {
-            return piece.object3D.visible === true;
+            const isVisible = piece.object3D.visible === true;
+            const notPhotographed = !isPiecePhotographed(piece);
+            return isVisible && notPhotographed;
         }
         return false;
     });
@@ -983,13 +999,22 @@ function checkVisiblePieces() {
     if (finalVisiblePieces.length > 0) {
         console.log(`📸 Foto tirada com ${finalVisiblePieces.length} peça(s) visível(is)!`);
         
-        // Mostrar feedback positivo
-        showPhotoFeedback(true, finalVisiblePieces.length);
+        // Marcar todas as peças visíveis como fotografadas
+        finalVisiblePieces.forEach(piece => {
+            markPieceAsPhotographed(piece);
+        });
+        
+        // Pegar a primeira peça visível para mostrar sua imagem
+        const firstPiece = finalVisiblePieces[0];
+        const pieceImageSrc = firstPiece.getAttribute('material')?.src || null;
+        
+        // Mostrar feedback positivo com imagem da peça
+        showPhotoFeedback(true, finalVisiblePieces.length, pieceImageSrc);
     } else {
         console.log('📸 Foto tirada sem peças visíveis');
         
         // Mostrar feedback negativo
-        showPhotoFeedback(false, 0);
+        showPhotoFeedback(false, 0, null);
     }
 }
 
@@ -1030,8 +1055,112 @@ function debugPieces() {
 // Expor função de debug globalmente
 window.debugPieces = debugPieces;
 
+// Variável global para rastrear peças já fotografadas
+let photographedPieces = new Set();
+
+// Função para marcar peça como fotografada
+function markPieceAsPhotographed(piece) {
+    const pieceId = piece.id;
+    photographedPieces.add(pieceId);
+    console.log(`📸 Peça ${pieceId} marcada como fotografada`);
+    
+    // Adicionar classe visual para indicar que foi fotografada
+    piece.classList.add('photographed');
+    
+    // Opcional: adicionar efeito visual (ex: transparência reduzida)
+    piece.setAttribute('material', {
+        ...piece.getAttribute('material'),
+        opacity: 0.3,
+        transparent: true
+    });
+    
+    // Atualizar contador de peças fotografadas
+    updatePhotoCounter();
+    
+    // Verificar se todas as peças foram fotografadas
+    if (photographedPieces.size >= document.querySelectorAll('.peca-plane').length) {
+        console.log('🎉 Todas as peças foram fotografadas!');
+        
+        // Iniciar quebra-cabeça após um delay
+        setTimeout(() => {
+            if (window.puzzleManager) {
+                window.puzzleManager.startPuzzle();
+            } else {
+                console.error('❌ Puzzle Manager não encontrado');
+            }
+        }, 2000); // 2 segundos de delay
+    }
+}
+
+// Função para verificar se peça já foi fotografada
+function isPiecePhotographed(piece) {
+    return photographedPieces.has(piece.id);
+}
+
+// Função para resetar peças fotografadas (útil para nova fase)
+function resetPhotographedPieces() {
+    photographedPieces.clear();
+    console.log('🔄 Peças fotografadas resetadas');
+    
+    // Remover classe visual de todas as peças
+    const allPieces = document.querySelectorAll('.peca-plane');
+    allPieces.forEach(piece => {
+        piece.classList.remove('photographed');
+        // Restaurar opacidade original
+        const material = piece.getAttribute('material');
+        if (material) {
+            piece.setAttribute('material', {
+                ...material,
+                opacity: 1.0,
+                transparent: true
+            });
+        }
+    });
+    
+    // Atualizar contador de peças fotografadas
+    updatePhotoCounter();
+}
+
+// Expor funções globalmente para debug
+window.markPieceAsPhotographed = markPieceAsPhotographed;
+window.isPiecePhotographed = isPiecePhotographed;
+window.resetPhotographedPieces = resetPhotographedPieces;
+
+// Função para atualizar o contador de peças fotografadas
+function updatePhotoCounter() {
+    const photoCountElement = document.getElementById('photo-count');
+    const totalPiecesElement = document.getElementById('total-pieces');
+    const counterElement = document.getElementById('photo-counter');
+    
+    if (photoCountElement && totalPiecesElement && counterElement) {
+        const totalPieces = document.querySelectorAll('.peca-plane').length;
+        const photographedCount = photographedPieces.size;
+        
+        photoCountElement.textContent = photographedCount;
+        totalPiecesElement.textContent = totalPieces;
+        
+        // Adicionar animação de atualização
+        counterElement.classList.add('updated');
+        setTimeout(() => {
+            counterElement.classList.remove('updated');
+        }, 500);
+        
+        console.log(`📊 Contador atualizado: ${photographedCount}/${totalPieces} peças`);
+    }
+}
+
+// Função para inicializar o contador
+function initPhotoCounter() {
+    updatePhotoCounter();
+    console.log('📊 Contador de peças inicializado');
+}
+
+// Expor função globalmente para debug
+window.updatePhotoCounter = updatePhotoCounter;
+window.initPhotoCounter = initPhotoCounter;
+
 // Função para mostrar feedback da foto
-function showPhotoFeedback(success, pieceCount) {
+function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
     // Criar elemento de feedback
     const feedback = document.createElement('div');
     feedback.style.cssText = `
@@ -1043,18 +1172,73 @@ function showPhotoFeedback(success, pieceCount) {
         background: ${success ? 'rgba(0, 255, 0, 0.9)' : 'rgba(255, 0, 0, 0.9)'};
         color: white;
         padding: 20px 30px;
-        border-radius: 10px;
+        border-radius: 15px;
         font-size: 18px;
         font-weight: bold;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         animation: feedbackFade 2s ease-out forwards;
+        min-width: 200px;
+        max-width: 300px;
     `;
     
-    feedback.textContent = success 
+    // Criar conteúdo do feedback
+    const content = document.createElement('div');
+    content.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    `;
+    
+    // Adicionar texto
+    const text = document.createElement('div');
+    text.textContent = success 
         ? `📸 Foto tirada! ${pieceCount} peça(s) capturada(s)`
         : '📸 Nenhuma peça encontrada na foto';
+    text.style.cssText = `
+        font-size: 16px;
+        line-height: 1.4;
+    `;
+    content.appendChild(text);
     
+    // Adicionar imagem da peça se disponível e for sucesso
+    if (success && pieceImageSrc && pieceCount > 0) {
+        const pieceImage = document.createElement('img');
+        pieceImage.src = pieceImageSrc;
+        pieceImage.style.cssText = `
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: pieceImagePop 0.5s ease-out 0.3s both;
+        `;
+        
+        // Adicionar fallback se a imagem não carregar
+        pieceImage.onerror = () => {
+            pieceImage.style.display = 'none';
+            console.log('⚠️ Imagem da peça não carregou:', pieceImageSrc);
+        };
+        
+        content.appendChild(pieceImage);
+        
+        // Adicionar texto adicional se houver múltiplas peças
+        if (pieceCount > 1) {
+            const extraText = document.createElement('div');
+            extraText.textContent = `+${pieceCount - 1} mais`;
+            extraText.style.cssText = `
+                font-size: 14px;
+                opacity: 0.8;
+                font-style: italic;
+            `;
+            content.appendChild(extraText);
+        }
+    }
+    
+    feedback.appendChild(content);
     document.body.appendChild(feedback);
     
     // Remover feedback após 2 segundos
