@@ -23,11 +23,7 @@ class PuzzleManager {
         this.setupEventListeners();
     }
     
-    setupEventListeners() {
-        // Botões do quebra-cabeça
-        document.getElementById('reset-puzzle')?.addEventListener('click', () => this.resetPuzzle());
-        document.getElementById('back-to-ar')?.addEventListener('click', () => this.backToAR());
-        
+    setupEventListeners() {        
         // Botões de parabéns
         document.getElementById('play-again')?.addEventListener('click', () => this.playAgain());
         document.getElementById('back-to-main')?.addEventListener('click', () => this.backToMain());
