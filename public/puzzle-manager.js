@@ -328,6 +328,14 @@ class PuzzleManager {
         if (puzzleScreen) {
             puzzleScreen.style.display = 'flex';
         }
+        
+        // Esconder tela UI
+        const uiScreen = document.getElementById('ui');
+        if (uiScreen) {
+            uiScreen.style.display = 'none';
+        }
+        
+        console.log('🧩 Tela UI desativada, quebra-cabeça ativado');
     }
     
     // Esconder tela do quebra-cabeça
@@ -336,6 +344,14 @@ class PuzzleManager {
         if (puzzleScreen) {
             puzzleScreen.style.display = 'none';
         }
+        
+        // Reativar tela UI
+        const uiScreen = document.getElementById('ui');
+        if (uiScreen) {
+            uiScreen.style.display = 'block';
+        }
+        
+        console.log('🧩 Tela UI reativada, quebra-cabeça desativado');
     }
     
     // Esconder tela de parabéns
@@ -365,6 +381,12 @@ class PuzzleManager {
     backToAR() {
         console.log('⬅️ Voltando ao AR...');
         this.hidePuzzleScreen();
+        
+        // Reativar tela UI explicitamente
+        const uiScreen = document.getElementById('ui');
+        if (uiScreen) {
+            uiScreen.style.display = 'block';
+        }
         
         // Notificar sistema principal
         if (window.screenManager) {

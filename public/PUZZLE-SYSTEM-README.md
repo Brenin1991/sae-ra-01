@@ -8,6 +8,7 @@ Este sistema implementa um jogo de quebra-cabeça completo com drag and drop, qu
 - ✅ Inicia automaticamente após fotografar todas as peças
 - ✅ Transição suave da tela AR para o quebra-cabeça
 - ✅ Delay de 2 segundos para feedback visual
+- ✅ Desativa tela UI automaticamente
 
 ### **Sistema de Drag and Drop:**
 - ✅ Peças arrastáveis com feedback visual
@@ -43,6 +44,21 @@ if (photographedPieces.size >= document.querySelectorAll('.peca-plane').length) 
 // Carrega dados do JSON
 const data = await fetch('assets/data/data.json');
 const puzzleData = data.fase1.quebracabeca;
+```
+
+### **4. Gerenciamento de Telas:**
+```javascript
+// Ao entrar no quebra-cabeça
+showPuzzleScreen() {
+    puzzleScreen.style.display = 'flex';
+    uiScreen.style.display = 'none'; // Desativa UI
+}
+
+// Ao sair do quebra-cabeça
+hidePuzzleScreen() {
+    puzzleScreen.style.display = 'none';
+    uiScreen.style.display = 'block'; // Reativa UI
+}
 ```
 
 ## 📊 Estrutura de Dados
@@ -149,7 +165,7 @@ if (draggedPiece.dataset.pieceId === target.dataset.targetId) {
 
 ### **Botões do Quebra-Cabeça:**
 - **🔄 Reiniciar**: Reset completo do jogo
-- **⬅️ Voltar ao AR**: Retorna à tela AR
+- **⬅️ Voltar ao AR**: Retorna à tela AR (reativa UI)
 
 ### **Botões de Parabéns:**
 - **🔄 Jogar Novamente**: Reinicia o quebra-cabeça
