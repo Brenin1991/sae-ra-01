@@ -22,27 +22,52 @@
             {
                 "id": "01",
                 "peca": "assets/textures/fase1/quebracabeca/fase1-01.png",
-                "target": "assets/textures/fase1/quebracabeca/fase1-01-target.png"
+                "target": "assets/textures/fase1/quebracabeca/fase1-01-target.png",
+                "position": {
+                    "x": 120,
+                    "y": 0,
+                    "description": "Topo central"
+                }
             },
             {
                 "id": "02",
                 "peca": "assets/textures/fase1/quebracabeca/fase1-02.png",
-                "target": "assets/textures/fase1/quebracabeca/fase1-02-target.png"
+                "target": "assets/textures/fase1/quebracabeca/fase1-02-target.png",
+                "position": {
+                    "x": 0,
+                    "y": 60,
+                    "description": "Lateral esquerda"
+                }
             },
             {
                 "id": "03",
                 "peca": "assets/textures/fase1/quebracabeca/fase1-03.png",
-                "target": "assets/textures/fase1/quebracabeca/fase1-03-target.png"
+                "target": "assets/textures/fase1/quebracabeca/fase1-03-target.png",
+                "position": {
+                    "x": 240,
+                    "y": 60,
+                    "description": "Lateral direita"
+                }
             },
             {
                 "id": "04",
                 "peca": "assets/textures/fase1/quebracabeca/fase1-04.png",
-                "target": "assets/textures/fase1/quebracabeca/fase1-04-target.png"
+                "target": "assets/textures/fase1/quebracabeca/fase1-04-target.png",
+                "position": {
+                    "x": 60,
+                    "y": 120,
+                    "description": "Base esquerda"
+                }
             },
             {
                 "id": "05",
                 "peca": "assets/textures/fase1/quebracabeca/fase1-05.png",
-                "target": "assets/textures/fase1/quebracabeca/fase1-05-target.png"
+                "target": "assets/textures/fase1/quebracabeca/fase1-05-target.png",
+                "position": {
+                    "x": 180,
+                    "y": 120,
+                    "description": "Base direita"
+                }
             }
         ]
     }

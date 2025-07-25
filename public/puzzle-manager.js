@@ -138,6 +138,13 @@ class PuzzleManager {
             target.dataset.targetId = pieceData.id;
             target.dataset.targetIndex = index;
             
+            // Aplicar posição customizada se disponível
+            if (pieceData.position) {
+                target.style.left = `${pieceData.position.x}px`;
+                target.style.top = `${pieceData.position.y}px`;
+                console.log(`🧩 Target ${pieceData.id} posicionado em (${pieceData.position.x}, ${pieceData.position.y})`);
+            }
+            
             const img = document.createElement('img');
             img.src = pieceData.target;
             img.alt = `Target ${pieceData.id}`;
@@ -157,7 +164,7 @@ class PuzzleManager {
             this.targets.push(target);
         });
         
-        console.log(`🧩 ${this.targets.length} targets criados`);
+        console.log(`🧩 ${this.targets.length} targets criados com posições customizadas`);
     }
     
     // Eventos de drag and drop
