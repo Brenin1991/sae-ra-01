@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>SAE RA - Realidade Aumentada</title>
 
     <!-- Estilos da aplicação -->
@@ -11,20 +11,29 @@
 
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/viewport-units-buggyfill@0.6.2/viewport-units-buggyfill.js"></script>
 </head>
 
 <body>    
-    <div class="controls">
+    <div class="controls" style="display: none;">
         <button id="toggleMode" class="mode-button">🌅 Modo HDRI</button>
         <button id="clearPecas" class="mode-button" style="background: rgba(255, 0, 0, 0.8);">🗑️ Limpar Peças</button>
     </div>
 
-    <div class="ui">
-        
+    <div id="main">
+        <button id="main-button" class="main-button" style="background: rgba(255, 0, 0, 0.8);">INICIAR</button>
+    </div>
+
+    <div id="tutorial">
+        <button id="main-button" class="main-button" style="background: rgba(255, 0, 0, 0.8);">INICIAR</button>
+    </div>
+
+    <div id="ui">
+        <img class="camera-icon" src="assets/textures/camera-icon.png" alt="Camera">        
         <img class="lupa" src="assets/textures/lupa.png" alt="Lupa">
     </div>
 
-    <img class="camera-icon" src="assets/textures/camera-icon.png" alt="Camera">
+    
 
     <!-- Vídeo da webcam como fundo -->
     <video id="webcam" autoplay muted playsinline></video>

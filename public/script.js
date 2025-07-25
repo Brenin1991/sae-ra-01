@@ -1,3 +1,8 @@
+document.addEventListener("DOMContentLoaded", function () {
+    viewportUnitsBuggyfill.init();
+    viewportUnitsBuggyfill.refresh();
+});
+
 // Variáveis globais
 let gameData = null;
 let currentPhase = 'fase1';
