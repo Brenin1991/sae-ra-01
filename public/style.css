@@ -660,10 +660,12 @@ a-scene {
     pointer-events: none;
     z-index: 50;
     border-radius: 10px;
+    display: block;
+    visibility: visible;
 }
 
 .puzzle-resultado.ativo {
-    opacity: 1;
+    opacity: 1 !important;
 }
 
 .puzzle-target {
@@ -674,6 +676,7 @@ a-scene {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .puzzle-piece {
@@ -725,6 +728,7 @@ a-scene {
     max-width: 90%;
     max-height: 90%;
     object-fit: contain;
+    transition: opacity 0.5s ease-in-out;
 }
 
 @keyframes correctPlacement {

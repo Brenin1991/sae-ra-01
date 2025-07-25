@@ -243,6 +243,34 @@ class PuzzleManager {
         target.classList.add('correct');
         target.classList.remove('highlight');
         
+        // Mostrar a imagem da peça no target
+        const pieceData = this.puzzleData.find(p => p.id === piece.dataset.pieceId);
+        if (pieceData) {
+            // Limpar conteúdo anterior do target
+            target.innerHTML = '';
+            
+            // Criar imagem da peça
+            const pieceImg = document.createElement('img');
+            pieceImg.src = pieceData.peca;
+            pieceImg.alt = `Peça ${pieceData.id} montada`;
+            pieceImg.style.cssText = `
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                opacity: 0;
+                transition: opacity 0.5s ease-in-out;
+            `;
+            
+            target.appendChild(pieceImg);
+            
+            // Animar entrada da imagem
+            setTimeout(() => {
+                pieceImg.style.opacity = '1';
+            }, 100);
+            
+            console.log(`🖼️ Imagem da peça ${pieceData.id} mostrada no target`);
+        }
+        
         // Remover peça da área de peças
         piece.style.display = 'none';
         
@@ -380,6 +408,10 @@ class PuzzleManager {
         
         console.log(`🎉 Tentando mostrar resultado: ${this.puzzleConfig.resultado}`);
         
+        // Garantir que o elemento está visível
+        resultadoElement.style.display = 'block';
+        resultadoElement.style.visibility = 'visible';
+        
         // Pré-carregar a imagem para garantir que ela existe
         const img = new Image();
         img.onload = () => {
@@ -395,11 +427,21 @@ class PuzzleManager {
             setTimeout(() => {
                 resultadoElement.classList.add('ativo');
                 console.log('✅ Classe "ativo" adicionada ao resultado');
+                
+                // Verificar se a classe foi aplicada
+                setTimeout(() => {
+                    const isActive = resultadoElement.classList.contains('ativo');
+                    const opacity = window.getComputedStyle(resultadoElement).opacity;
+                    console.log(`🔍 Verificação: classe ativo = ${isActive}, opacity = ${opacity}`);
+                }, 100);
             }, 300);
         };
         
         img.onerror = () => {
             console.error('❌ Erro ao carregar imagem de resultado:', this.puzzleConfig.resultado);
+            // Fallback: mostrar mensagem de erro
+            resultadoElement.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">🎉 Quebra-Cabeça Completo!</div>';
+            resultadoElement.classList.add('ativo');
         };
         
         img.src = this.puzzleConfig.resultado;
@@ -418,9 +460,16 @@ class PuzzleManager {
         // Limpar imagem após transição
         setTimeout(() => {
             resultadoElement.style.backgroundImage = 'none';
+            resultadoElement.innerHTML = '';
         }, 500);
         
         console.log('🧹 Resultado limpo');
+    }
+    
+    // Método para testar o resultado (debug)
+    testResult() {
+        console.log('🧪 Testando resultado...');
+        this.showResult();
     }
     
     // Mostrar tela de parabéns
@@ -594,5 +643,12 @@ document.addEventListener('DOMContentLoaded', () => {
 window.startPuzzle = () => {
     if (window.puzzleManager) {
         window.puzzleManager.startPuzzle();
+    }
+};
+
+// Expor função para testar resultado (debug)
+window.testResult = () => {
+    if (window.puzzleManager) {
+        window.puzzleManager.testResult();
     }
 }; 
