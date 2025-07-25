@@ -613,7 +613,6 @@ a-scene {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     z-index: 2000;
     display: none;
     flex-direction: column;
@@ -642,6 +641,28 @@ a-scene {
     width: 300px;
     height: 180px;
     margin: 0 auto;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.puzzle-resultado {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.puzzle-resultado.ativo {
+    opacity: 1;
 }
 
 .puzzle-target {
@@ -875,6 +896,8 @@ a-scene {
     .puzzle-targets {
         width: 250px;
         height: 150px;
+        background-size: cover;
+        background-position: center;
     }
     
     .puzzle-piece, .puzzle-target {

@@ -6,6 +6,7 @@
 class PuzzleManager {
     constructor() {
         this.puzzleData = null;
+        this.puzzleConfig = null;
         this.pieces = [];
         this.targets = [];
         this.draggedPiece = null;
@@ -48,9 +49,16 @@ class PuzzleManager {
             const data = await response.json();
             
             if (data[phaseName] && data[phaseName].quebracabeca) {
-                this.puzzleData = data[phaseName].quebracabeca;
+                const quebracabeca = data[phaseName].quebracabeca;
+                
+                // Separar configuração (primeiro item) das peças (resto)
+                this.puzzleConfig = quebracabeca[0];
+                this.puzzleData = quebracabeca.slice(1);
                 this.totalPieces = this.puzzleData.length;
+                
                 console.log(`🧩 Dados do quebra-cabeça carregados: ${this.totalPieces} peças`);
+                console.log(`🧩 Base: ${this.puzzleConfig.base}`);
+                console.log(`🧩 Resultado: ${this.puzzleConfig.resultado}`);
                 return true;
             } else {
                 console.error('❌ Dados do quebra-cabeça não encontrados');
@@ -84,8 +92,19 @@ class PuzzleManager {
     
     // Criar elementos do quebra-cabeça
     createPuzzleElements() {
+        this.setupBase();
         this.createPieces();
         this.createTargets();
+    }
+    
+    // Configurar imagem de base
+    setupBase() {
+        const targetsContainer = document.getElementById('puzzle-targets');
+        if (!targetsContainer || !this.puzzleConfig) return;
+        
+        // Definir imagem de base como fundo
+        targetsContainer.style.backgroundImage = `url('${this.puzzleConfig.base}')`;
+        console.log(`🧩 Base configurada: ${this.puzzleConfig.base}`);
     }
     
     // Criar peças arrastáveis
@@ -307,8 +326,45 @@ class PuzzleManager {
         this.isPuzzleComplete = true;
         const timeTaken = Math.floor((Date.now() - this.startTime) / 1000);
         
-        // Mostrar tela de parabéns
-        this.showCongratulationsScreen(timeTaken);
+        // Mostrar resultado
+        this.showResult();
+        
+        // Mostrar tela de parabéns após um delay
+        setTimeout(() => {
+            this.showCongratulationsScreen(timeTaken);
+        }, 2000);
+    }
+    
+    // Mostrar resultado do quebra-cabeça
+    showResult() {
+        const resultadoElement = document.getElementById('puzzle-resultado');
+        if (!resultadoElement || !this.puzzleConfig) return;
+        
+        // Definir imagem de resultado
+        resultadoElement.style.backgroundImage = `url('${this.puzzleConfig.resultado}')`;
+        
+        // Ativar com animação
+        setTimeout(() => {
+            resultadoElement.classList.add('ativo');
+        }, 100);
+        
+        console.log(`🎉 Resultado mostrado: ${this.puzzleConfig.resultado}`);
+    }
+    
+    // Limpar resultado
+    clearResult() {
+        const resultadoElement = document.getElementById('puzzle-resultado');
+        if (!resultadoElement) return;
+        
+        // Remover classe ativo
+        resultadoElement.classList.remove('ativo');
+        
+        // Limpar imagem após transição
+        setTimeout(() => {
+            resultadoElement.style.backgroundImage = 'none';
+        }, 500);
+        
+        console.log('🧹 Resultado limpo');
     }
     
     // Mostrar tela de parabéns
@@ -377,6 +433,9 @@ class PuzzleManager {
         this.completedPieces = 0;
         this.isPuzzleComplete = false;
         this.startTime = Date.now();
+        
+        // Limpar resultado
+        this.clearResult();
         
         // Recriar elementos
         this.createPuzzleElements();

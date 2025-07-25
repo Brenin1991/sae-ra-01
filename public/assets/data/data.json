@@ -20,6 +20,10 @@
         ],
         "quebracabeca": [
             {
+                "base": "assets/textures/fase1/quebracabeca/fase1-base.png",
+                "resultado": "assets/textures/fase1/quebracabeca/fase1-resultado.png"
+            },
+            {
                 "id": "01",
                 "peca": "assets/textures/fase1/quebracabeca/fase1-01.png",
                 "target": "assets/textures/fase1/quebracabeca/fase1-01-target.png",
