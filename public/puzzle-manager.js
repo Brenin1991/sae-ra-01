@@ -326,29 +326,85 @@ class PuzzleManager {
         this.isPuzzleComplete = true;
         const timeTaken = Math.floor((Date.now() - this.startTime) / 1000);
         
-        // Mostrar resultado
-        this.showResult();
+        // Feedback visual de conclusão
+        this.showCompletionFeedback();
         
-        // Mostrar tela de parabéns após um delay
+        // Mostrar resultado após um pequeno delay
+        setTimeout(() => {
+            this.showResult();
+        }, 500);
+        
+        // Mostrar tela de parabéns após um delay maior
         setTimeout(() => {
             this.showCongratulationsScreen(timeTaken);
-        }, 2000);
+        }, 4000); // Aumentado para 4 segundos
+    }
+    
+    // Mostrar feedback de conclusão
+    showCompletionFeedback() {
+        const feedback = document.createElement('div');
+        feedback.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(76, 175, 80, 0.95);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            z-index: 5000;
+            animation: feedbackFade 1.5s ease-out forwards;
+            text-align: center;
+        `;
+        feedback.innerHTML = '🎉<br>Quebra-Cabeça<br>Completo!';
+        
+        document.body.appendChild(feedback);
+        
+        // Remover após animação
+        setTimeout(() => {
+            if (feedback.parentNode) {
+                feedback.parentNode.removeChild(feedback);
+            }
+        }, 1500);
     }
     
     // Mostrar resultado do quebra-cabeça
     showResult() {
         const resultadoElement = document.getElementById('puzzle-resultado');
-        if (!resultadoElement || !this.puzzleConfig) return;
+        if (!resultadoElement || !this.puzzleConfig) {
+            console.error('❌ Elemento de resultado não encontrado ou configuração ausente');
+            return;
+        }
         
-        // Definir imagem de resultado
-        resultadoElement.style.backgroundImage = `url('${this.puzzleConfig.resultado}')`;
+        console.log(`🎉 Tentando mostrar resultado: ${this.puzzleConfig.resultado}`);
         
-        // Ativar com animação
-        setTimeout(() => {
-            resultadoElement.classList.add('ativo');
-        }, 100);
+        // Pré-carregar a imagem para garantir que ela existe
+        const img = new Image();
+        img.onload = () => {
+            console.log('✅ Imagem de resultado carregada com sucesso');
+            
+            // Definir imagem de resultado
+            resultadoElement.style.backgroundImage = `url('${this.puzzleConfig.resultado}')`;
+            
+            // Forçar reflow para garantir que a imagem seja carregada
+            resultadoElement.offsetHeight;
+            
+            // Ativar com animação
+            setTimeout(() => {
+                resultadoElement.classList.add('ativo');
+                console.log('✅ Classe "ativo" adicionada ao resultado');
+            }, 300);
+        };
         
-        console.log(`🎉 Resultado mostrado: ${this.puzzleConfig.resultado}`);
+        img.onerror = () => {
+            console.error('❌ Erro ao carregar imagem de resultado:', this.puzzleConfig.resultado);
+        };
+        
+        img.src = this.puzzleConfig.resultado;
+        
+        console.log(`🎉 Resultado configurado: ${this.puzzleConfig.resultado}`);
     }
     
     // Limpar resultado
