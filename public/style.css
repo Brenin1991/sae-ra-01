@@ -1,6 +1,34 @@
-body {
+/* Prevenir zoom de pinça e melhorar responsividade */
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
     margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
     font-family: Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    touch-action: manipulation;
+}
+
+/* Prevenir zoom em inputs e textareas */
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    font-size: 16px; /* Previne zoom automático no iOS */
 }
 
 .info {
@@ -47,6 +75,9 @@ body {
     display: none;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
+    /* Fallback para dispositivos que não suportam vh/vw */
+    width: 100%;
+    height: 100%;
 }
 
 #main-button{
@@ -85,6 +116,9 @@ body {
     font-size: 24px;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    /* Fallback para dispositivos que não suportam vh/vw */
+    width: 100%;
+    height: 100%;
 }
 
 #tutorial-content {
@@ -144,6 +178,9 @@ body {
     display: none;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
+    /* Fallback para dispositivos que não suportam vh/vw */
+    height: 100%;
+    width: 100%;
 }
 
 #ui .camera-icon {
@@ -198,6 +235,7 @@ a-scene {
     transform: scale(0.95);
 }
 
+/* Media Queries para diferentes dispositivos */
 @media (max-width: 768px) {
     .info, .controls {
         font-size: 12px;
@@ -207,5 +245,113 @@ a-scene {
     .mode-button {
         font-size: 12px;
         padding: 8px 12px;
+    }
+    
+    #main-button {
+        width: 180px;
+        height: 65px;
+        font-size: 16px;
+    }
+    
+    #tutorial-button {
+        width: 220px;
+        height: 65px;
+    }
+    
+    #narracao-button {
+        width: 45px;
+        height: 45px;
+    }
+}
+
+/* Dispositivos muito pequenos */
+@media (max-width: 480px) {
+    #main-button {
+        width: 160px;
+        height: 60px;
+        font-size: 14px;
+    }
+    
+    #tutorial-button {
+        width: 200px;
+        height: 60px;
+    }
+    
+    #tutorial-content {
+        width: 90vw;
+        height: 70vh;
+    }
+}
+
+/* Dispositivos com notch (iPhone X, etc.) */
+@supports (padding: max(0px)) {
+    body {
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+}
+
+/* Orientação paisagem em dispositivos móveis */
+@media (max-height: 500px) and (orientation: landscape) {
+    #main-button {
+        top: 70%;
+        width: 150px;
+        height: 50px;
+        font-size: 14px;
+    }
+    
+    #tutorial-button {
+        bottom: -10%;
+        width: 180px;
+        height: 50px;
+    }
+    
+    #tutorial-content {
+        height: 80vh;
+    }
+    
+    #narracao-button {
+        top: 2%;
+        left: 5%;
+    }
+}
+
+/* Tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+    #main-button {
+        width: 220px;
+        height: 85px;
+        font-size: 20px;
+    }
+    
+    #tutorial-button {
+        width: 280px;
+        height: 85px;
+    }
+    
+    #narracao-button {
+        width: 55px;
+        height: 55px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+    #main-button {
+        width: 250px;
+        height: 90px;
+        font-size: 22px;
+    }
+    
+    #tutorial-button {
+        width: 300px;
+        height: 90px;
+    }
+    
+    #narracao-button {
+        width: 60px;
+        height: 60px;
     }
 } 

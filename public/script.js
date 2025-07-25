@@ -1,6 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
-    viewportUnitsBuggyfill.init();
-    viewportUnitsBuggyfill.refresh();
+    // Inicializar viewportUnitsBuggyfill para corrigir vh/vw em dispositivos móveis
+    viewportUnitsBuggyfill.init({
+        refreshDebounceWait: 250,
+        hacks: viewportUnitsBuggyfill.hacks
+    });
+    
+    // Prevenir zoom de pinça
+    preventPinchZoom();
     
     // Aguardar o ScreenManager ser inicializado
     setTimeout(() => {
@@ -10,6 +16,69 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }, 100);
 });
+
+// Função para prevenir zoom de pinça
+function preventPinchZoom() {
+    let lastTouchEnd = 0;
+    
+    // Prevenir zoom de pinça no documento
+    document.addEventListener('touchstart', function (event) {
+        if (event.touches.length > 1) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+    
+    // Prevenir zoom de pinça com gestos
+    document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, { passive: false });
+    
+    // Prevenir zoom de pinça com gestos de dois dedos
+    document.addEventListener('gesturestart', function (event) {
+        event.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('gesturechange', function (event) {
+        event.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('gestureend', function (event) {
+        event.preventDefault();
+    }, { passive: false });
+    
+    // Prevenir zoom de pinça com wheel
+    document.addEventListener('wheel', function (event) {
+        if (event.ctrlKey) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+    
+    // Prevenir zoom de pinça com keydown
+    document.addEventListener('keydown', function (event) {
+        if (event.ctrlKey && (event.key === '+' || event.key === '-' || event.key === '=')) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+    
+    console.log('🔒 Zoom de pinça desabilitado');
+    
+    // Recarregar viewportUnitsBuggyfill quando a orientação mudar
+    window.addEventListener('orientationchange', function() {
+        setTimeout(function() {
+            viewportUnitsBuggyfill.refresh();
+            console.log('📱 Orientação mudou - viewportUnitsBuggyfill recarregado');
+        }, 500);
+    });
+    
+    // Recarregar viewportUnitsBuggyfill quando a janela for redimensionada
+    window.addEventListener('resize', function() {
+        viewportUnitsBuggyfill.refresh();
+    });
+}
 
 // Variáveis globais
 let gameData = null;
