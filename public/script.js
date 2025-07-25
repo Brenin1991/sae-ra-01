@@ -932,18 +932,59 @@ function vibrateDevice() {
 
 // Função para verificar peças visíveis
 function checkVisiblePieces() {
-    // Verificar se há peças ativas na cena
-    const activePieces = document.querySelectorAll('.peca-ativa');
-    const visiblePieces = Array.from(activePieces).filter(piece => {
+    // Verificar se há peças visíveis na cena (com classe peca-plane e visible=true)
+    const allPieces = document.querySelectorAll('.peca-plane');
+    
+    // Método 1: Verificar por atributo visible e posição na tela
+    const visiblePieces = Array.from(allPieces).filter(piece => {
+        // Verificar se a peça está visível
+        const isVisible = piece.getAttribute('visible') === 'true';
+        
+        // Verificar se está na tela
         const rect = piece.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
+        const isOnScreen = rect.width > 0 && rect.height > 0 && 
+                          rect.top >= 0 && rect.left >= 0 && 
+                          rect.bottom <= window.innerHeight && 
+                          rect.right <= window.innerWidth;
+        
+        return isVisible && isOnScreen;
     });
     
-    if (visiblePieces.length > 0) {
-        console.log(`📸 Foto tirada com ${visiblePieces.length} peça(s) visível(is)!`);
+    // Método 2: Verificar por estilo CSS (backup)
+    const cssVisiblePieces = Array.from(allPieces).filter(piece => {
+        const style = window.getComputedStyle(piece);
+        return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    });
+    
+    // Método 3: Verificar por A-Frame object3D (mais preciso)
+    const aframeVisiblePieces = Array.from(allPieces).filter(piece => {
+        if (piece.object3D) {
+            return piece.object3D.visible === true;
+        }
+        return false;
+    });
+    
+    console.log(`🔍 Verificando peças: ${allPieces.length} total`);
+    console.log(`🔍 Método 1 (visible + screen): ${visiblePieces.length} peças`);
+    console.log(`🔍 Método 2 (CSS): ${cssVisiblePieces.length} peças`);
+    console.log(`🔍 Método 3 (A-Frame): ${aframeVisiblePieces.length} peças`);
+    
+    // Debug: mostrar detalhes de cada peça
+    allPieces.forEach((piece, index) => {
+        const isVisible = piece.getAttribute('visible') === 'true';
+        const rect = piece.getBoundingClientRect();
+        const aframeVisible = piece.object3D ? piece.object3D.visible : 'N/A';
+        console.log(`🔍 Peça ${index + 1}: ID=${piece.id}, Visible=${isVisible}, AFrame=${aframeVisible}, Rect=${JSON.stringify(rect)}`);
+    });
+    
+    // Usar o método mais confiável (A-Frame object3D se disponível, senão visible + screen)
+    const finalVisiblePieces = aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces;
+    
+    if (finalVisiblePieces.length > 0) {
+        console.log(`📸 Foto tirada com ${finalVisiblePieces.length} peça(s) visível(is)!`);
         
         // Mostrar feedback positivo
-        showPhotoFeedback(true, visiblePieces.length);
+        showPhotoFeedback(true, finalVisiblePieces.length);
     } else {
         console.log('📸 Foto tirada sem peças visíveis');
         
@@ -951,6 +992,43 @@ function checkVisiblePieces() {
         showPhotoFeedback(false, 0);
     }
 }
+
+// Função de debug para testar detecção de peças (pode ser chamada no console)
+function debugPieces() {
+    console.log('🔍 === DEBUG DE PEÇAS ===');
+    
+    const allPieces = document.querySelectorAll('.peca-plane');
+    console.log(`Total de peças encontradas: ${allPieces.length}`);
+    
+    if (allPieces.length === 0) {
+        console.log('❌ Nenhuma peça encontrada! Verifique se:');
+        console.log('   - As peças foram criadas corretamente');
+        console.log('   - A classe "peca-plane" está sendo aplicada');
+        console.log('   - O modelo 3D foi carregado');
+        return;
+    }
+    
+    allPieces.forEach((piece, index) => {
+        console.log(`\n🔍 Peça ${index + 1}:`);
+        console.log(`   ID: ${piece.id}`);
+        console.log(`   Classe: ${piece.className}`);
+        console.log(`   Visible (attr): ${piece.getAttribute('visible')}`);
+        console.log(`   A-Frame visible: ${piece.object3D ? piece.object3D.visible : 'N/A'}`);
+        
+        const rect = piece.getBoundingClientRect();
+        console.log(`   Posição na tela: ${JSON.stringify(rect)}`);
+        
+        const style = window.getComputedStyle(piece);
+        console.log(`   CSS display: ${style.display}`);
+        console.log(`   CSS visibility: ${style.visibility}`);
+        console.log(`   CSS opacity: ${style.opacity}`);
+    });
+    
+    console.log('\n🔍 === FIM DO DEBUG ===');
+}
+
+// Expor função de debug globalmente
+window.debugPieces = debugPieces;
 
 // Função para mostrar feedback da foto
 function showPhotoFeedback(success, pieceCount) {
