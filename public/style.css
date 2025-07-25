@@ -89,9 +89,10 @@ input, textarea {
     width: 200px;
     height: 75px;
     background-image: url(assets/textures/btn-jogar.png);
-    background-size: cover;
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: transparent;
     cursor: pointer;
     border: none;
     outline: none;
@@ -129,44 +130,72 @@ input, textarea {
     z-index: 2100;
     width: 80vw;
     height: 60vh;
-    background-image: url(assets/textures/tutorial-text.png);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#tutorial-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    z-index: 2101;
 }
 
 #tutorial-button {
     position: fixed;
-    bottom: -15%;
+    bottom: -9%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2100;
     width: 260px;
     height: 75px;
     background-image: url(assets/textures/btn-comecar.png);
-    background-size: cover;
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: transparent;
     cursor: pointer;
     border: none;
     outline: none;
+    z-index: 9101;
 }
 
 #narracao-button {
     position: fixed;
-    top: -5%;
-    left: 8%;
+    top: 0%;
+    left: 11%;
     transform: translate(-50%, -50%);
     z-index: 2100;
     width: 50px;
     height: 50px;
     background-image: url(assets/textures/narracao-icon.png);
-    background-size: cover;
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: transparent;
     cursor: pointer;
     border: none;
     outline: none;
+    z-index: 9101;
+}
+
+#narracao-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2100;
+    width: 100vw;
+    height: auto;
+    object-fit: contain;
+    z-index: 8101;
 }
 
 
@@ -256,11 +285,15 @@ a-scene {
     #tutorial-button {
         width: 220px;
         height: 65px;
+        background-size: contain;
+        background-color: transparent;
     }
     
     #narracao-button {
         width: 45px;
         height: 45px;
+        background-size: contain;
+        background-color: transparent;
     }
 }
 
@@ -275,11 +308,13 @@ a-scene {
     #tutorial-button {
         width: 200px;
         height: 60px;
+        background-size: contain;
+        background-color: transparent;
     }
     
     #tutorial-content {
         width: 90vw;
-        height: 70vh;
+        height: 80vh;
     }
 }
 
@@ -306,6 +341,8 @@ a-scene {
         bottom: -10%;
         width: 180px;
         height: 50px;
+        background-size: contain;
+        background-color: transparent;
     }
     
     #tutorial-content {
@@ -329,11 +366,15 @@ a-scene {
     #tutorial-button {
         width: 280px;
         height: 85px;
+        background-size: contain;
+        background-color: transparent;
     }
     
     #narracao-button {
         width: 55px;
         height: 55px;
+        background-size: contain;
+        background-color: transparent;
     }
 }
 
@@ -348,10 +389,14 @@ a-scene {
     #tutorial-button {
         width: 300px;
         height: 90px;
+        background-size: contain;
+        background-color: transparent;
     }
     
     #narracao-button {
         width: 60px;
         height: 60px;
+        background-size: contain;
+        background-color: transparent;
     }
 } 
