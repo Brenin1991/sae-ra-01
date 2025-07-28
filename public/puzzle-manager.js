@@ -270,7 +270,7 @@ class PuzzleManager {
             pieceImg.style.cssText = `
                 width: 100%;
                 height: 100%;
-                object-fit: contain;
+                object-fit: cover;
                 opacity: 0;
                 transition: opacity 0.5s ease-in-out;
             `;
