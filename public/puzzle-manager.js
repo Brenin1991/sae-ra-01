@@ -268,12 +268,21 @@ class PuzzleManager {
             pieceImg.src = pieceData.peca;
             pieceImg.alt = `Peça ${pieceData.id} montada`;
             pieceImg.style.cssText = `
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
                 opacity: 0;
                 transition: opacity 0.5s ease-in-out;
             `;
+            
+            // Aplicar tamanho original da peça
+            pieceImg.onload = () => {
+                const originalWidth = pieceImg.naturalWidth;
+                const originalHeight = pieceImg.naturalHeight;
+                
+                // Aplicar dimensões originais
+                pieceImg.style.width = `${originalWidth}px`;
+                pieceImg.style.height = `${originalHeight}px`;
+                
+                console.log(`🖼️ Peça ${pieceData.id} com tamanho original: ${originalWidth}x${originalHeight}`);
+            };
             
             target.appendChild(pieceImg);
             
