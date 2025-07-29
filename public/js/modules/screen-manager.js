@@ -17,7 +17,7 @@ class ScreenManager {
         this.registerDefaultScreens();
         
         // Iniciar na tela principal
-        this.showScreen('selfie');
+        this.showScreen('main');
     }
     
     registerDefaultScreens() {

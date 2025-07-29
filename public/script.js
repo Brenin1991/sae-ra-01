@@ -108,6 +108,13 @@ AFRAME.registerComponent('auto-detect', {
         this.cooldown = 800;
         this.raycaster = new THREE.Raycaster();
         this.camera = null;
+        
+        // Debug para dispositivos móveis
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         window.innerWidth <= 768;
+        if (isMobile) {
+            console.log('📱 Auto-detect inicializado em dispositivo móvel');
+        }
     },
     
     tick: function (time) {
@@ -121,6 +128,16 @@ AFRAME.registerComponent('auto-detect', {
         
         const interactiveObjects = document.querySelectorAll('.clickable');
         if (interactiveObjects.length === 0) return;
+        
+        // Debug para dispositivos móveis
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         window.innerWidth <= 768;
+        if (isMobile && time % 1000 < 100) { // Log a cada segundo
+            console.log('📱 Auto-detect tick:', {
+                interactiveObjects: interactiveObjects.length,
+                camera: this.camera ? 'disponível' : 'não disponível'
+            });
+        }
         
         const cameraObj = this.camera.object3D;
         const direction = new THREE.Vector3(0, 0, -1);
@@ -433,6 +450,18 @@ function createInteractivePlane(obj, container, index) {
     
     container.appendChild(pecaPlane);
     plane.pecaPlane = pecaPlane;
+    
+    // Debug para dispositivos móveis
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     window.innerWidth <= 768;
+    if (isMobile) {
+        console.log('📱 Peça criada em dispositivo móvel:', {
+            id: pecaPlane.id,
+            visible: pecaPlane.getAttribute('visible'),
+            position: pecaPlane.getAttribute('position'),
+            object3D: pecaPlane.object3D ? 'disponível' : 'não disponível'
+        });
+    }
 }
 
 // Inicializar webcam
@@ -645,18 +674,36 @@ function vibrateDevice() {
 function checkVisiblePieces() {
     const allPieces = document.querySelectorAll('.peca-plane');
     
+    // Detectar se é dispositivo móvel
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     window.innerWidth <= 768;
+    
+    console.log('📱 Dispositivo móvel detectado:', isMobile);
+    
     const visiblePieces = Array.from(allPieces).filter(piece => {
         const isVisible = piece.getAttribute('visible') === 'true';
+        const notPhotographed = !isPiecePhotographed(piece);
+        
+        // Para dispositivos móveis, usar apenas verificação A-Frame
+        if (isMobile) {
+            if (piece.object3D) {
+                const aframeVisible = piece.object3D.visible === true;
+                return isVisible && aframeVisible && notPhotographed;
+            }
+            return false;
+        }
+        
+        // Para desktop, usar verificação de bounding rect
         const rect = piece.getBoundingClientRect();
         const isOnScreen = rect.width > 0 && rect.height > 0 && 
                           rect.top >= 0 && rect.left >= 0 && 
                           rect.bottom <= window.innerHeight && 
                           rect.right <= window.innerWidth;
-        const notPhotographed = !isPiecePhotographed(piece);
         
         return isVisible && isOnScreen && notPhotographed;
     });
     
+    // Fallback para A-Frame em todos os dispositivos
     const aframeVisiblePieces = Array.from(allPieces).filter(piece => {
         if (piece.object3D) {
             const isVisible = piece.object3D.visible === true;
@@ -666,7 +713,16 @@ function checkVisiblePieces() {
         return false;
     });
     
-    const finalVisiblePieces = aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces;
+    // Priorizar A-Frame para dispositivos móveis
+    const finalVisiblePieces = (isMobile || aframeVisiblePieces.length > 0) ? aframeVisiblePieces : visiblePieces;
+    
+    console.log('🔍 Peças encontradas:', {
+        total: allPieces.length,
+        visible: visiblePieces.length,
+        aframeVisible: aframeVisiblePieces.length,
+        final: finalVisiblePieces.length,
+        isMobile: isMobile
+    });
     
     if (finalVisiblePieces.length > 0) {
         finalVisiblePieces.forEach(piece => {
@@ -711,6 +767,31 @@ function markPieceAsPhotographed(piece) {
 // Função para verificar se peça já foi fotografada
 function isPiecePhotographed(piece) {
     return photographedPieces.has(piece.id);
+}
+
+// Função de debug para testar detecção de peças em dispositivos móveis
+function debugVisiblePieces() {
+    const allPieces = document.querySelectorAll('.peca-plane');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     window.innerWidth <= 768;
+    
+    console.log('🔍 Debug de peças visíveis:');
+    console.log('📱 Dispositivo móvel:', isMobile);
+    console.log('📊 Total de peças:', allPieces.length);
+    
+    allPieces.forEach((piece, index) => {
+        const isVisible = piece.getAttribute('visible') === 'true';
+        const object3DVisible = piece.object3D ? piece.object3D.visible : 'N/A';
+        const isPhotographed = isPiecePhotographed(piece);
+        
+        console.log(`Peça ${index + 1}:`, {
+            id: piece.id,
+            visible: isVisible,
+            object3DVisible: object3DVisible,
+            photographed: isPhotographed,
+            position: piece.getAttribute('position')
+        });
+    });
 }
 
 // Função para resetar peças fotografadas
