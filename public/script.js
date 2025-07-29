@@ -152,6 +152,13 @@ AFRAME.registerComponent('auto-detect', {
         // Debug: verificar se há objetos interativos
         if (interactiveObjects.length === 0) {
             console.log('⚠️ Nenhum objeto interativo encontrado');
+        } else {
+            console.log(`🎯 ${interactiveObjects.length} objetos interativos encontrados`);
+        }
+        
+        // Debug: verificar interseções
+        if (intersections.length > 0) {
+            console.log(`🎯 ${intersections.length} interseções detectadas`);
         }
         
         // Rastrear objetos que estavam sendo mirados no frame anterior
@@ -169,12 +176,14 @@ AFRAME.registerComponent('auto-detect', {
             if (targetObject && targetObject.userData.aframeElement) {
                 const firstEl = targetObject.userData.aframeElement;
                 
-                // Verificar se é um objeto interativo
-                if (firstEl.hasAttribute('interactive-object')) {
-                    const component = firstEl.components['interactive-object'];
-                    if (component) {
-                        const objectId = component.data.objectId;
-                        previouslyIntersected.add(objectId);
+                        // Verificar se é um objeto interativo
+        if (firstEl.hasAttribute('interactive-object')) {
+            const component = firstEl.components['interactive-object'];
+            if (component) {
+                const objectId = component.data.objectId;
+                previouslyIntersected.add(objectId);
+                
+                console.log('🎯 Objeto interativo detectado:', objectId);
                         
                         // Verificar cooldown
                         if (!this.lastTriggered[objectId] || 
@@ -190,8 +199,14 @@ AFRAME.registerComponent('auto-detect', {
                                 const pecaPlane = firstEl.pecaPlane;
                                 if (pecaPlane && !pecaPlane.getAttribute('visible')) {
                                     console.log('🚀 EXECUTANDO POR DIREÇÃO DA CÂMERA!');
+                                    console.log('📸 Peça antes de mostrar:', pecaPlane.getAttribute('visible'));
                                     showFunction();
+                                    console.log('📸 Peça depois de mostrar:', pecaPlane.getAttribute('visible'));
+                                } else {
+                                    console.log('⚠️ Peça já visível ou não encontrada');
                                 }
+                            } else {
+                                console.log('❌ Função showPecaOnIntersection não encontrada');
                             }
                         }
                     }
@@ -199,7 +214,9 @@ AFRAME.registerComponent('auto-detect', {
             }
         }
         
+        // DESABILITADO PARA TESTE - Peças sempre visíveis
         // Esconder peças de objetos que não estão mais sendo mirados
+        /*
         if (this.lastIntersectedObjects) {
             this.lastIntersectedObjects.forEach(objectId => {
                 if (!previouslyIntersected.has(objectId)) {
@@ -220,6 +237,7 @@ AFRAME.registerComponent('auto-detect', {
                 }
             });
         }
+        */
         
         // Atualizar lista de objetos intersectados
         this.lastIntersectedObjects = previouslyIntersected;
@@ -239,6 +257,9 @@ AFRAME.registerComponent('interactive-object', {
         const data = this.data;
         
         function showPecaOnIntersection(event) {
+            // DESABILITADO PARA TESTE - Peças sempre visíveis
+            console.log('🎯 showPecaOnIntersection chamada (DESABILITADA)');
+            /*
             if (el.pecaPlane) {
                 el.pecaPlane.setAttribute('visible', 'true');
                 el.pecaPlane.setAttribute('scale', '1 1 1');
@@ -254,9 +275,13 @@ AFRAME.registerComponent('interactive-object', {
                     });
                 }, 500);
             }
+            */
         }
         
         function hidePecaOnIntersectionCleared(event) {
+            // DESABILITADO PARA TESTE - Peças sempre visíveis
+            console.log('🎯 hidePecaOnIntersectionCleared chamada (DESABILITADA)');
+            /*
             if (el.pecaPlane) {
                 el.pecaPlane.removeAttribute('animation__glow');
                 
@@ -265,6 +290,7 @@ AFRAME.registerComponent('interactive-object', {
                     el.pecaPlane.removeAttribute('animation__hide');
                 }, 200);
             }
+            */
         }
         
         el.showPecaOnIntersection = showPecaOnIntersection;
@@ -447,7 +473,7 @@ function createInteractivePlane(obj, container, index) {
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
-    pecaPlane.setAttribute('visible', 'false');
+    pecaPlane.setAttribute('visible', 'true'); // SEMPRE VISÍVEL PARA TESTE
     
     pecaPlane.setAttribute('billboard', '');
     
@@ -724,7 +750,14 @@ function checkVisiblePieces() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                      window.innerWidth <= 768;
     
+    console.log('📱 Mobile:', isMobile);
+    console.log('📊 Total peças:', allPieces.length);
+    console.log('👁️ Peças visíveis (getBoundingClientRect):', visiblePieces.length);
+    console.log('🎯 Peças visíveis (A-Frame):', aframeVisiblePieces.length);
+    
     const finalVisiblePieces = isMobile ? aframeVisiblePieces : (aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces);
+    
+    console.log('✅ Peças finais selecionadas:', finalVisiblePieces.length);
     
 
     
