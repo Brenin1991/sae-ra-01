@@ -271,9 +271,8 @@ AFRAME.registerComponent('auto-detect', {
             }
         }
         
-        // DESABILITADO PARA TESTE - Peças sempre visíveis
+        // HABILITADO - Mostrar/esconder peças como antes
         // Esconder peças de objetos que não estão mais sendo mirados
-        /*
         if (this.lastIntersectedObjects) {
             this.lastIntersectedObjects.forEach(objectId => {
                 if (!previouslyIntersected.has(objectId)) {
@@ -294,7 +293,6 @@ AFRAME.registerComponent('auto-detect', {
                 }
             });
         }
-        */
         
         // Atualizar lista de objetos intersectados
         this.lastIntersectedObjects = previouslyIntersected;
@@ -314,9 +312,8 @@ AFRAME.registerComponent('interactive-object', {
         const data = this.data;
         
         function showPecaOnIntersection(event) {
-            // DESABILITADO PARA TESTE - Peças sempre visíveis
-            console.log('🎯 showPecaOnIntersection chamada (DESABILITADA)');
-            /*
+            // HABILITADO - Mostrar peças como antes
+            console.log('🎯 showPecaOnIntersection chamada');
             if (el.pecaPlane) {
                 el.pecaPlane.setAttribute('visible', 'true');
                 el.pecaPlane.setAttribute('scale', '1 1 1');
@@ -332,13 +329,11 @@ AFRAME.registerComponent('interactive-object', {
                     });
                 }, 500);
             }
-            */
         }
         
         function hidePecaOnIntersectionCleared(event) {
-            // DESABILITADO PARA TESTE - Peças sempre visíveis
-            console.log('🎯 hidePecaOnIntersectionCleared chamada (DESABILITADA)');
-            /*
+            // HABILITADO - Esconder peças como antes
+            console.log('🎯 hidePecaOnIntersectionCleared chamada');
             if (el.pecaPlane) {
                 el.pecaPlane.removeAttribute('animation__glow');
                 
@@ -347,7 +342,6 @@ AFRAME.registerComponent('interactive-object', {
                     el.pecaPlane.removeAttribute('animation__hide');
                 }, 200);
             }
-            */
         }
         
         el.showPecaOnIntersection = showPecaOnIntersection;
@@ -617,7 +611,7 @@ function createInteractivePlane(obj, container, index) {
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
-    pecaPlane.setAttribute('visible', 'true'); // SEMPRE VISÍVEL PARA TESTE
+    pecaPlane.setAttribute('visible', 'false'); // INVISÍVEL POR PADRÃO - APARECE SÓ QUANDO MIRAR
     pecaPlane.setAttribute('billboard', '');
     
     const timestamp = Date.now() + Math.random();
@@ -629,6 +623,10 @@ function createInteractivePlane(obj, container, index) {
     // ADICIONAR PEÇA VERDE IMEDIATAMENTE
     container.appendChild(pecaPlane);
     showDebugMessage('🎯 Peça VERDE adicionada ao container IMEDIATAMENTE');
+    
+    // SALVAR REFERÊNCIA DA PEÇA NO ELEMENTO INTERATIVO
+    plane.pecaPlane = pecaPlane;
+    showDebugMessage('🎯 Referência da peça salva no plane');
     
 
     
@@ -643,16 +641,30 @@ function createInteractivePlane(obj, container, index) {
     };
     objImage.src = obj.imagem;
     
-    // VOLTAR A USAR IMAGENS REAIS
-    pecaPlane.setAttribute('material', {
-        src: obj.peca,
-        transparent: true,
-        alphaTest: 0.1,
-        emissive: '#FFFFFF',
-        emissiveIntensity: 0.4
-    });
-    
-    showDebugMessage('🎯 Usando imagem real: ' + obj.peca);
+    // PRÉ-CARREGAR A IMAGEM ANTES DE CRIAR O MATERIAL
+    showDebugMessage('🔄 PRÉ-CARREGANDO: ' + obj.peca);
+    const img = new Image();
+    img.onload = () => {
+        showDebugMessage('✅ IMAGEM CARREGADA: ' + obj.peca);
+        pecaPlane.setAttribute('material', {
+            src: obj.peca,
+            transparent: true,
+            alphaTest: 0.1,
+            emissive: '#FFFFFF',
+            emissiveIntensity: 0.4
+        });
+        showDebugMessage('🎯 MATERIAL APLICADO: ' + obj.peca);
+    };
+    img.onerror = () => {
+        showDebugMessage('❌ ERRO AO CARREGAR: ' + obj.peca);
+        // Fallback para cor simples se a imagem falhar
+        pecaPlane.setAttribute('material', {
+            color: '#FF0000',
+            transparent: true,
+            alphaTest: 0.1
+        });
+    };
+    img.src = obj.peca;
     
     // Peça já foi adicionada acima
     plane.pecaPlane = pecaPlane;
@@ -680,7 +692,9 @@ function createInteractivePlane(obj, container, index) {
         allPieces.forEach((piece, i) => {
             const isVisible = piece.getAttribute('visible');
             const position = piece.getAttribute('position');
-            showDebugMessage(`🔍 Peça ${i+1}: visible=${isVisible}, position=${position}`);
+            const material = piece.getAttribute('material');
+            const src = material ? material.src : 'SEM MATERIAL';
+            showDebugMessage(`🔍 Peça ${i+1}: visible=${isVisible}, position=${position}, src=${src}`);
         });
     }, 1000);
     
@@ -688,6 +702,12 @@ function createInteractivePlane(obj, container, index) {
     setTimeout(() => {
         const allPieces = document.querySelectorAll('.peca-plane');
         showDebugMessage(`🔍 Verificação 3s: ${allPieces.length} peças encontradas`);
+        
+        allPieces.forEach((piece, i) => {
+            const material = piece.getAttribute('material');
+            const src = material ? material.src : 'SEM MATERIAL';
+            showDebugMessage(`🔍 Peça ${i+1}: material.src = ${src}`);
+        });
         
         if (allPieces.length === 0) {
             showDebugMessage('⚠️ ATENÇÃO: Nenhuma peça encontrada após 3s - problema geral');
