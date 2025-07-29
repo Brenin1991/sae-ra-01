@@ -634,7 +634,7 @@ a-scene {
     flex: 1;
     padding: 20px;
     position: fixed;
-    bottom: 50px;
+    top: 100px;
 }
 
 
@@ -658,7 +658,7 @@ a-scene {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 300px;
     height: 100%;
     background-size: cover;
     background-position: center;
@@ -666,7 +666,7 @@ a-scene {
     opacity: 0;
     transition: opacity 0.8s ease-in-out;
     pointer-events: none;
-    z-index: 50;
+    z-index: 9999; /* Z-index muito alto para garantir que apareça por cima */
     border-radius: 10px;
     display: block;
     visibility: visible;
@@ -773,7 +773,6 @@ a-scene {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
     z-index: 3000;
     display: none;
     align-items: center;
@@ -901,7 +900,7 @@ a-scene {
         max-height: 500px;
         width: 300px;
         position: fixed;
-        top: 25px;
+        bottom: 100px;
     }
     
     .puzzle-targets {
