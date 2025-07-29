@@ -92,6 +92,18 @@ let photographedPieces = new Set();
 function showDebugMessage(message) {
     console.log(message);
     
+    // Verificar ambiente
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHTTPS = window.location.protocol === 'https:';
+    const userAgent = navigator.userAgent;
+    
+    // Adicionar informações de ambiente na primeira mensagem
+    if (!window.debugInitialized) {
+        window.debugInitialized = true;
+        const envInfo = `🌐 Ambiente: ${isLocal ? 'LOCAL' : 'PRODUÇÃO'} | HTTPS: ${isHTTPS} | UserAgent: ${userAgent.substring(0, 50)}...`;
+        console.log(envInfo);
+    }
+    
     // Criar ou atualizar elemento de debug na tela
     let debugElement = document.getElementById('debug-messages');
     if (!debugElement) {
@@ -359,6 +371,15 @@ function clearAllPecas() {
 // Função para carregar dados do JSON
 async function loadGameData() {
     showDebugMessage('🎯 loadGameData iniciando...');
+    
+    // Verificar se estamos em HTTPS (necessário para câmera em produção)
+    const isHTTPS = window.location.protocol === 'https:';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (!isHTTPS && !isLocal) {
+        showDebugMessage('⚠️ ATENÇÃO: Não está em HTTPS - câmera pode não funcionar!');
+    }
+    
     try {
         showDebugMessage('📡 Fazendo fetch do data.json...');
         const response = await fetch('assets/data/data.json');
@@ -376,6 +397,8 @@ async function loadGameData() {
         
     } catch (error) {
         showDebugMessage('❌ Erro ao carregar dados: ' + error.message);
+        showDebugMessage('🔍 URL tentada: assets/data/data.json');
+        showDebugMessage('🔍 URL completa: ' + window.location.href + 'assets/data/data.json');
     }
 }
 
@@ -541,6 +564,9 @@ function createInteractivePlane(obj, container, index) {
         z: position.z
     };
     
+    showDebugMessage('🎯 Criando peça para: ' + obj.id);
+    showDebugMessage('🎯 Posição da peça: ' + JSON.stringify(pecaPosition));
+    
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
@@ -552,6 +578,18 @@ function createInteractivePlane(obj, container, index) {
     pecaPlane.id = 'peca-' + obj.id + '-' + timestamp;
     pecaPlane.classList.add('peca-plane');
     
+    showDebugMessage('🎯 Peça criada com ID: ' + pecaPlane.id);
+    
+    // Verificar se a imagem da peça existe
+    const pecaImage = new Image();
+    pecaImage.onload = () => {
+        showDebugMessage('✅ Imagem da peça carregada: ' + obj.peca);
+    };
+    pecaImage.onerror = () => {
+        showDebugMessage('❌ ERRO: Imagem da peça não encontrada: ' + obj.peca);
+    };
+    pecaImage.src = obj.peca;
+    
     pecaPlane.setAttribute('material', {
         src: obj.peca,
         transparent: true,
@@ -560,11 +598,19 @@ function createInteractivePlane(obj, container, index) {
         emissiveIntensity: 0.4
     });
     
+    showDebugMessage('🎯 Adicionando peça ao container...');
     container.appendChild(pecaPlane);
+    showDebugMessage('🎯 Peça adicionada ao container');
+    
     plane.pecaPlane = pecaPlane;
+    showDebugMessage('🎯 Referência da peça salva no plane');
     
     showDebugMessage(`✅ Plane criado para objeto ${obj.id}`);
     showDebugMessage(`✅ Peça criada para objeto ${obj.id} (sempre visível)`);
+    
+    // Verificação imediata
+    const allPieces = document.querySelectorAll('.peca-plane');
+    showDebugMessage(`🔍 Verificação IMEDIATA: ${allPieces.length} peças encontradas no DOM`);
     
     // Verificar se as peças foram realmente criadas
     setTimeout(() => {
@@ -699,6 +745,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const scene = document.querySelector('a-scene');
     if (scene) {
+        showDebugMessage('✅ Cena A-Frame encontrada');
+        
+        // Verificar se A-Frame está carregado
+        if (typeof AFRAME === 'undefined') {
+            showDebugMessage('❌ ERRO: A-Frame não está carregado!');
+        } else {
+            showDebugMessage('✅ A-Frame carregado corretamente');
+        }
+        
         scene.addEventListener('loaded', function() {
             showDebugMessage('🎮 Cena A-Frame carregada - inicializando sistema...');
             
