@@ -11,24 +11,31 @@ document.addEventListener("DOMContentLoaded", function () {
     // Aguardar o ScreenManager ser inicializado
     setTimeout(() => {
         if (window.screenManager) {
-            // Integrar com o sistema de gerenciamento de telas
             integrateWithScreenManager();
+        } else {
+            console.log('⚠️ Aguardando ScreenManager...');
+            // Tentar novamente após mais tempo
+            setTimeout(() => {
+                if (window.screenManager) {
+                    integrateWithScreenManager();
+                } else {
+                    console.error('❌ ScreenManager não encontrado após timeout');
+                }
+            }, 1000);
         }
-    }, 100);
+    }, 500);
 });
 
 // Função para prevenir zoom de pinça
 function preventPinchZoom() {
     let lastTouchEnd = 0;
     
-    // Prevenir zoom de pinça no documento
     document.addEventListener('touchstart', function (event) {
         if (event.touches.length > 1) {
             event.preventDefault();
         }
     }, { passive: false });
     
-    // Prevenir zoom de pinça com gestos
     document.addEventListener('touchend', function (event) {
         const now = (new Date()).getTime();
         if (now - lastTouchEnd <= 300) {
@@ -37,7 +44,6 @@ function preventPinchZoom() {
         lastTouchEnd = now;
     }, { passive: false });
     
-    // Prevenir zoom de pinça com gestos de dois dedos
     document.addEventListener('gesturestart', function (event) {
         event.preventDefault();
     }, { passive: false });
@@ -50,31 +56,25 @@ function preventPinchZoom() {
         event.preventDefault();
     }, { passive: false });
     
-    // Prevenir zoom de pinça com wheel
     document.addEventListener('wheel', function (event) {
         if (event.ctrlKey) {
             event.preventDefault();
         }
     }, { passive: false });
     
-    // Prevenir zoom de pinça com keydown
     document.addEventListener('keydown', function (event) {
         if (event.ctrlKey && (event.key === '+' || event.key === '-' || event.key === '=')) {
             event.preventDefault();
         }
     }, { passive: false });
     
-    console.log('🔒 Zoom de pinça desabilitado');
-    
     // Recarregar viewportUnitsBuggyfill quando a orientação mudar
     window.addEventListener('orientationchange', function() {
         setTimeout(function() {
             viewportUnitsBuggyfill.refresh();
-            console.log('📱 Orientação mudou - viewportUnitsBuggyfill recarregado');
         }, 500);
     });
     
-    // Recarregar viewportUnitsBuggyfill quando a janela for redimensionada
     window.addEventListener('resize', function() {
         viewportUnitsBuggyfill.refresh();
     });
@@ -84,6 +84,9 @@ function preventPinchZoom() {
 let gameData = null;
 let currentPhase = 'fase1';
 let loadedModel = null;
+let isARMode = true;
+let currentStream = null;
+let photographedPieces = new Set();
 
 // Componente para fazer objetos sempre olharem para a câmera
 AFRAME.registerComponent('billboard', {
@@ -95,43 +98,36 @@ AFRAME.registerComponent('billboard', {
     }
 });
 
-// Componente para detecção automática baseada na DIREÇÃO da câmera (SEM MOUSE!)
+// Componente para detecção automática baseada na DIREÇÃO da câmera
 AFRAME.registerComponent('auto-detect', {
     init: function () {
         this.lastTriggered = {};
-        this.lastIntersectedObjects = new Set(); // Rastrear objetos intersectados
-        this.checkInterval = 100; // ms entre verificações
+        this.lastIntersectedObjects = new Set();
+        this.checkInterval = 100;
         this.lastCheck = 0;
-        this.cooldown = 800; // 0.8 segundos entre triggers do mesmo objeto
+        this.cooldown = 800;
         this.raycaster = new THREE.Raycaster();
         this.camera = null;
-        
-        console.log('🎯 DETECÇÃO AUTOMÁTICA POR DIREÇÃO DA CÂMERA!');
     },
     
     tick: function (time) {
-        // Verificar apenas a cada intervalo
         if (time - this.lastCheck < this.checkInterval) return;
         this.lastCheck = time;
         
-        // Pegar câmera
         if (!this.camera) {
             this.camera = document.querySelector('a-camera');
             if (!this.camera) return;
         }
         
-        // Pegar todos os objetos interativos
         const interactiveObjects = document.querySelectorAll('.clickable');
         if (interactiveObjects.length === 0) return;
         
-        // Configurar raycaster baseado na direção da câmera
         const cameraObj = this.camera.object3D;
         const direction = new THREE.Vector3(0, 0, -1);
         direction.applyQuaternion(cameraObj.quaternion);
         
         this.raycaster.set(cameraObj.position, direction);
         
-        // Converter elementos A-Frame para objetos Three.js
         const threeObjects = [];
         interactiveObjects.forEach(el => {
             if (el.object3D) {
@@ -140,17 +136,12 @@ AFRAME.registerComponent('auto-detect', {
             }
         });
         
-        // Testar intersecções
         const intersections = this.raycaster.intersectObjects(threeObjects, true);
-        
-        // Rastrear objetos que estavam sendo mirados no frame anterior
         const previouslyIntersected = new Set();
         
         if (intersections.length > 0) {
-            // Pegar o primeiro objeto intersectado
             let targetObject = intersections[0].object;
             
-            // Subir na hierarquia até encontrar o elemento A-Frame
             while (targetObject && !targetObject.userData.aframeElement) {
                 targetObject = targetObject.parent;
             }
@@ -158,27 +149,21 @@ AFRAME.registerComponent('auto-detect', {
             if (targetObject && targetObject.userData.aframeElement) {
                 const firstEl = targetObject.userData.aframeElement;
                 
-                // Verificar se é um objeto interativo
                 if (firstEl.hasAttribute('interactive-object')) {
                     const component = firstEl.components['interactive-object'];
                     if (component) {
                         const objectId = component.data.objectId;
                         previouslyIntersected.add(objectId);
                         
-                        // Verificar cooldown
                         if (!this.lastTriggered[objectId] || 
                             time - this.lastTriggered[objectId] > this.cooldown) {
                             
-                            console.log('🎯 CÂMERA MIROU NO OBJETO:', objectId);
                             this.lastTriggered[objectId] = time;
                             
-                            // Chamar diretamente a função de mostrar peça
                             const showFunction = firstEl.showPecaOnIntersection;
                             if (showFunction) {
-                                // Verificar se a peça já está visível para evitar conflitos
                                 const pecaPlane = firstEl.pecaPlane;
                                 if (pecaPlane && !pecaPlane.getAttribute('visible')) {
-                                    console.log('🚀 EXECUTANDO POR DIREÇÃO DA CÂMERA!');
                                     showFunction();
                                 }
                             }
@@ -188,11 +173,9 @@ AFRAME.registerComponent('auto-detect', {
             }
         }
         
-        // Esconder peças de objetos que não estão mais sendo mirados
         if (this.lastIntersectedObjects) {
             this.lastIntersectedObjects.forEach(objectId => {
                 if (!previouslyIntersected.has(objectId)) {
-                    // Encontrar o elemento e esconder a peça
                     const interactiveObjects = document.querySelectorAll('.clickable');
                     interactiveObjects.forEach(el => {
                         if (el.hasAttribute('interactive-object')) {
@@ -200,7 +183,6 @@ AFRAME.registerComponent('auto-detect', {
                             if (component && component.data.objectId === objectId) {
                                 const hideFunction = el.hidePecaOnIntersectionCleared;
                                 if (hideFunction) {
-                                    console.log('🙈 CÂMERA SAIU DO OBJETO:', objectId);
                                     hideFunction();
                                 }
                             }
@@ -210,7 +192,6 @@ AFRAME.registerComponent('auto-detect', {
             });
         }
         
-        // Atualizar lista de objetos intersectados
         this.lastIntersectedObjects = previouslyIntersected;
     }
 });
@@ -227,21 +208,11 @@ AFRAME.registerComponent('interactive-object', {
         const el = this.el;
         const data = this.data;
         
-        // Função para mostrar peça quando cursor entra
         function showPecaOnIntersection(event) {
-            // Usar a peça que já foi criada na função createInteractivePlane
             if (el.pecaPlane) {
-                console.log('👁️ Mostrando peça para:', data.objectId);
-                
-                // Mostrar a peça
                 el.pecaPlane.setAttribute('visible', 'true');
-                
-                // Efeito de aparecer com animação
                 el.pecaPlane.setAttribute('scale', '1 1 1');
-                // Voltar ao tamanho normal
-               
                 
-                // Adicionar brilho pulsante
                 setTimeout(() => {
                     el.pecaPlane.setAttribute('animation__glow', {
                         property: 'material.emissiveIntensity',
@@ -255,15 +226,10 @@ AFRAME.registerComponent('interactive-object', {
             }
         }
         
-        // Função para esconder peça quando cursor sai
         function hidePecaOnIntersectionCleared(event) {
             if (el.pecaPlane) {
-                console.log('🙈 Escondendo peça para:', data.objectId);
-                
-                // Parar animação de brilho
                 el.pecaPlane.removeAttribute('animation__glow');
                 
-                // Esconder após animação
                 setTimeout(() => {
                     el.pecaPlane.setAttribute('visible', 'false');
                     el.pecaPlane.removeAttribute('animation__hide');
@@ -271,29 +237,13 @@ AFRAME.registerComponent('interactive-object', {
             }
         }
         
-        // Disponibilizar função para acesso direto pelo auto-detect
         el.showPecaOnIntersection = showPecaOnIntersection;
         el.hidePecaOnIntersectionCleared = hidePecaOnIntersectionCleared;
         
-        // Eventos para mostrar/esconder peça
         el.addEventListener('raycaster-intersected', showPecaOnIntersection);
         el.addEventListener('raycaster-intersected-cleared', hidePecaOnIntersectionCleared);
-        
     }
 });
-
-// Função antiga showPeca (não mais usada - agora as peças são criadas no início)
-// Mantida apenas para compatibilidade se necessário
-function showPeca(pecaSrc, targetElement) {
-    console.log('⚠️ showPeca() chamada mas não é mais usada - peças são criadas no hover');
-}
-
-// Função para esconder peça (não usada mais automaticamente)
-function hidePeca() {
-    // Esta função não é mais usada automaticamente
-    // As peças agora ficam permanentes até o usuário clicar "Limpar Peças"
-    console.log('ℹ️ hidePeca() chamada mas peças agora são permanentes');
-}
 
 // Função para limpar todas as peças permanentes
 function clearAllPecas() {
@@ -303,25 +253,11 @@ function clearAllPecas() {
         peca.remove();
         count++;
     });
-    console.log(`🗑️ ${count} peça(s) removida(s)`);
 }
-
-// Comentar temporariamente para debug - peça não deve sumir
-// document.addEventListener('click', function(event) {
-//     console.log('🖱️ Clique detectado em:', event.target.tagName, event.target.classList);
-//     
-//     // Se clicou na cena ou no fundo, fechar peça
-//     if (event.target.tagName === 'A-SCENE' || 
-//         event.target.tagName === 'CANVAS' ||
-//         event.target.id === 'webcam') {
-//         hidePeca();
-//     }
-// });
 
 // Função para carregar dados do JSON
 async function loadGameData() {
     try {
-        console.log('📊 Carregando dados do jogo...');
         const response = await fetch('assets/data/data.json');
         
         if (!response.ok) {
@@ -329,9 +265,7 @@ async function loadGameData() {
         }
         
         gameData = await response.json();
-        console.log('✅ Dados carregados:', gameData);
         
-        // Carregar fase atual
         await loadPhase(currentPhase);
         
     } catch (error) {
@@ -347,20 +281,14 @@ async function loadPhase(phaseName) {
     }
     
     const phaseData = gameData[phaseName];
-    console.log('🎮 Carregando fase:', phaseName);
     
-    // Carregar modelo 3D
     await loadModel(phaseData.model);
-    
-    // Configurar objetos interativos
     setupInteractiveObjects(phaseData.objetos);
 }
 
 // Função para carregar modelo GLB
 function loadModel(modelPath) {
     return new Promise((resolve, reject) => {
-        console.log('🏗️ Carregando modelo:', modelPath);
-        
         const modelEntity = document.getElementById('main-model');
         if (!modelEntity) {
             reject('Elemento do modelo não encontrado');
@@ -371,11 +299,6 @@ function loadModel(modelPath) {
         
         modelEntity.addEventListener('model-loaded', function() {
             loadedModel = modelEntity.getObject3D('mesh');
-            console.log('✅ Modelo carregado com sucesso!');
-            
-            // Debug: listar todos os objetos no modelo
-            debugListModelObjects();
-            
             resolve(loadedModel);
         });
         
@@ -388,28 +311,21 @@ function loadModel(modelPath) {
 
 // Função para configurar objetos interativos
 function setupInteractiveObjects(objects) {
-    console.log('🎯 Configurando objetos interativos...');
-    
     const container = document.getElementById('interactive-objects');
     if (!container) {
         console.error('❌ Container de objetos não encontrado');
         return;
     }
     
-    // Limpar objetos existentes
     while (container.firstChild) {
         container.removeChild(container.firstChild);
     }
     
     objects.forEach((obj, index) => {
-        console.log(`🔧 Configurando objeto ${obj.id}...`);
-        
-        // Encontrar objeto no modelo e torná-lo transparente
         if (loadedModel) {
             hideObjectInModel(obj.id);
         }
         
-        // Criar plane interativo
         createInteractivePlane(obj, container, index);
     });
 }
@@ -418,11 +334,8 @@ function setupInteractiveObjects(objects) {
 function hideObjectInModel(objectId) {
     if (!loadedModel) return;
     
-    // Procurar objeto por nome/ID no modelo
     loadedModel.traverse(function(child) {
         if (child.name === objectId || child.name.includes(objectId)) {
-            console.log(`👻 Tornando transparente: ${child.name}`);
-            
             if (child.material) {
                 child.material.transparent = true;
                 child.material.opacity = 0;
@@ -440,51 +353,22 @@ function getObjectPositionFromModel(objectId) {
     
     loadedModel.traverse(function(child) {
         if (child.name === objectId || child.name.includes(objectId)) {
-            // Obter posição world do objeto
             const worldPosition = new THREE.Vector3();
             child.getWorldPosition(worldPosition);
             objectPosition = worldPosition;
-            console.log(`📍 Posição encontrada para ${objectId}:`, worldPosition);
         }
     });
     
     return objectPosition;
 }
 
-// Função de debug para listar objetos do modelo
-function debugListModelObjects() {
-    if (!loadedModel) {
-        console.log('❌ Modelo não carregado para debug');
-        return;
-    }
-    
-    console.log('🔍 === DEBUG: Objetos no modelo ===');
-    
-    loadedModel.traverse(function(child) {
-        if (child.name && child.name !== '') {
-            const position = new THREE.Vector3();
-            child.getWorldPosition(position);
-            
-            console.log(`📦 Objeto: "${child.name}" | Tipo: ${child.type} | Posição:`, {
-                x: Math.round(position.x * 100) / 100,
-                y: Math.round(position.y * 100) / 100,
-                z: Math.round(position.z * 100) / 100
-            });
-        }
-    });
-    
-    console.log('🔍 === FIM DEBUG ===');
-}
-
 // Função para criar plane interativo
 function createInteractivePlane(obj, container, index) {
     const plane = document.createElement('a-plane');
     
-    // Tentar obter posição real do modelo, senão usar posição de fallback
     let position = getObjectPositionFromModel(obj.id);
     
     if (!position) {
-        // Posição de fallback - distribuir em círculo
         const angle = (index * 360 / 3) * Math.PI / 180;
         const radius = 2;
         position = {
@@ -492,12 +376,10 @@ function createInteractivePlane(obj, container, index) {
             y: 1.5 + (index * 0.2),
             z: Math.sin(angle) * radius
         };
-        console.log(`⚠️ Usando posição de fallback para ${obj.id}`);
     } else {
-        // Ajustar posição para ficar um pouco à frente
         position = {
             x: position.x,
-            y: position.y + 0.3, // Elevar um pouco
+            y: position.y + 0.3,
             z: position.z
         };
     }
@@ -511,7 +393,6 @@ function createInteractivePlane(obj, container, index) {
         alphaTest: 0.1
     });
     
-    // Componentes
     plane.setAttribute('billboard', '');
     plane.setAttribute('interactive-object', {
         objectId: obj.id,
@@ -519,34 +400,29 @@ function createInteractivePlane(obj, container, index) {
         pecaSrc: obj.peca
     });
     
-    // Tornar o plane clicável pelo cursor do A-Frame
     plane.setAttribute('cursor-listener', '');
     plane.classList.add('clickable');
     
     container.appendChild(plane);
     
-    // Criar peça correspondente (INVISÍVEL no início)
     const pecaPlane = document.createElement('a-plane');
     const pecaPosition = {
         x: position.x,
-        y: position.y, // 0.8 unidades acima do objeto
-        z: position.z   // Mais à frente do objeto
+        y: position.y,
+        z: position.z
     };
     
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
-    pecaPlane.setAttribute('visible', 'false'); // INVISÍVEL no início
+    pecaPlane.setAttribute('visible', 'false');
     
-    // Fazer a peça sempre olhar para a câmera
     pecaPlane.setAttribute('billboard', '');
     
-    // ID único para cada peça
     const timestamp = Date.now() + Math.random();
     pecaPlane.id = 'peca-' + obj.id + '-' + timestamp;
     pecaPlane.classList.add('peca-plane');
     
-    // Carregar textura da peça
     pecaPlane.setAttribute('material', {
         src: obj.peca,
         transparent: true,
@@ -555,22 +431,13 @@ function createInteractivePlane(obj, container, index) {
         emissiveIntensity: 0.4
     });
     
-    // Adicionar peça à cena
     container.appendChild(pecaPlane);
-    
-    // Armazenar referência da peça no plane do objeto para fácil acesso
     plane.pecaPlane = pecaPlane;
-    
-    console.log(`✅ Plane criado para objeto ${obj.id} em`, position);
-    console.log(`✅ Peça criada para objeto ${obj.id} (inicialmente invisível)`);
-    
-
 }
 
 // Inicializar webcam
 async function initWebcam() {
     try {
-        // Verificar suporte do navegador
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             throw new Error('Navegador não suporta acesso à câmera');
         }
@@ -582,57 +449,45 @@ async function initWebcam() {
             return;
         }
         
-        console.log('🔍 Tentando acessar a câmera...');
-        
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
-                facingMode: 'environment', // Câmera traseira no celular
+                facingMode: 'environment',
                 width: { ideal: 1280 },
                 height: { ideal: 720 }
             } 
         });
         
         video.srcObject = stream;
-        currentStream = stream; // Salvar stream para poder parar depois
+        currentStream = stream;
         
-        // Aguardar o vídeo carregar
         video.onloadedmetadata = function() {
             console.log('📷 Webcam inicializada com sucesso!');
         };
         
     } catch (error) {
         console.error('❌ Erro ao acessar webcam:', error);
-        console.log('💡 Tentando usar câmera frontal...');
         
-        // Tentar câmera frontal como fallback
         try {
             const video = document.getElementById('webcam');
             if (video) {
                 const frontStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
-                        facingMode: 'user' // Câmera frontal
+                        facingMode: 'user'
                     } 
                 });
                 video.srcObject = frontStream;
-                currentStream = frontStream; // Salvar stream da câmera frontal também
-                console.log('📷 Câmera frontal inicializada!');
+                currentStream = frontStream;
             }
         } catch (frontError) {
             console.error('❌ Erro com câmera frontal também:', frontError);
             
-            // Fallback final: fundo escuro
             const scene = document.querySelector('a-scene');
             if (scene) {
                 scene.setAttribute('background', 'color: #001133');
-                console.log('🎨 Usando fundo escuro como fallback');
             }
         }
     }
 }
-
-// Variáveis globais
-let isARMode = true;
-let currentStream = null;
 
 // Função para alternar entre modo AR e HDRI
 function toggleMode() {
@@ -642,10 +497,6 @@ function toggleMode() {
     const button = document.getElementById('toggleMode');
     
     if (isARMode) {
-        // Mudar para modo HDRI
-        console.log('🌅 Mudando para modo HDRI...');
-        
-        // Parar webcam
         if (currentStream) {
             currentStream.getTracks().forEach(track => track.stop());
             currentStream = null;
@@ -655,7 +506,6 @@ function toggleMode() {
             video.style.display = 'none';
         }
         
-        // Ativar HDRI
         if (sky) {
             sky.setAttribute('visible', 'true');
         }
@@ -666,17 +516,7 @@ function toggleMode() {
         button.textContent = 'Modo AR';
         isARMode = false;
         
-        // Esconder objetos interativos em modo HDRI (opcional)
-        const interactiveContainer = document.getElementById('interactive-objects');
-        if (interactiveContainer) {
-            interactiveContainer.setAttribute('visible', 'true'); // Manter visível
-        }
-        
     } else {
-        // Mudar para modo AR
-        console.log('📱 Mudando para modo AR...');
-        
-        // Desativar HDRI
         if (sky) {
             sky.setAttribute('visible', 'false');
         }
@@ -684,7 +524,6 @@ function toggleMode() {
             scene.setAttribute('background', 'transparent: true');
         }
         
-        // Reativar webcam
         if (video) {
             video.style.display = 'block';
         }
@@ -695,45 +534,35 @@ function toggleMode() {
     }
 }
 
-
-
 // Aguardar DOM carregar antes de inicializar
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar botão de alternância
     const toggleButton = document.getElementById('toggleMode');
     if (toggleButton) {
         toggleButton.addEventListener('click', toggleMode);
     }
     
-    // Configurar botão de limpar peças
     const clearButton = document.getElementById('clearPecas');
     if (clearButton) {
         clearButton.addEventListener('click', clearAllPecas);
     }
     
-    // Inicializar em modo AR por padrão
     const sky = document.querySelector('a-sky');
     if (sky) {
         sky.setAttribute('visible', 'false');
     }
     
-    // Tentar inicializar webcam imediatamente
     initWebcam();
     
-    // Backup: também tentar quando a cena A-Frame carregar
     const scene = document.querySelector('a-scene');
     if (scene) {
         scene.addEventListener('loaded', function() {
-            // Carregar dados do jogo
             loadGameData();
             
-            // Só inicializar novamente se o vídeo ainda não tem stream
             const video = document.getElementById('webcam');
             if (video && !video.srcObject && isARMode) {
                 initWebcam();
             }
             
-            // Adicionar sistema de reset automático
             setupAutoReset();
         });
     }
@@ -741,132 +570,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Sistema simplificado de reset por tempo
 function setupAutoReset() {
-    console.log('📱 Sistema de reset automático por tempo');
-    
-    // A cada 2 segundos, resetar triggers para permitir nova detecção
     setInterval(() => {
         const cursor = document.querySelector('#main-cursor');
         if (cursor && cursor.components && cursor.components['auto-detect']) {
             cursor.components['auto-detect'].lastTriggered = {};
-            console.log('🔄 Reset automático - permitindo novas detecções');
         }
-    }, 2000); // Reset a cada 2 segundos
+    }, 2000);
 }
-
-// Função para tentar carregar HDRI em diferentes formatos
-function loadHDRI() {
-    const formats = ['jpg', 'png', 'hdr'];
-    let formatIndex = 0;
-    
-    function tryNextFormat() {
-        if (formatIndex >= formats.length) {
-            console.log('⚠️ Nenhum formato de skybox encontrado - usando gradient');
-            console.log('💡 Coloque sky.jpg ou sky.png na pasta assets/');
-            console.log('🔧 Dica: Use https://www.hdri-to-cubemap.com/ para converter');
-            return;
-        }
-        
-        const format = formats[formatIndex];
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        img.onload = function() {
-            console.log(`✅ Skybox ${format.toUpperCase()} carregado com sucesso!`);
-            // Substituir o gradient pelo skybox real
-            const sky = document.querySelector('a-sky');
-            if (sky) {
-                sky.setAttribute('src', `assets/textures/sky.${format}`);
-            }
-        };
-        
-        img.onerror = function() {
-            console.log(`❌ sky.${format} não encontrado, tentando próximo formato...`);
-            formatIndex++;
-            tryNextFormat();
-        };
-        
-        img.src = `assets/textures/sky.${format}`;
-    }
-    
-    tryNextFormat();
-}
-
-// Tentar carregar HDRI
-loadHDRI();
 
 // Função para integrar com o sistema de gerenciamento de telas
 function integrateWithScreenManager() {
-    if (!window.screenManager) return;
-    
-    // Sobrescrever as funções de entrada das telas para incluir lógica específica
-    const originalOnUIEnter = window.screenManager.onUIEnter;
-    window.screenManager.onUIEnter = function() {
-        console.log('🎮 Iniciando experiência AR...');
-        
-        // Inicializar webcam quando entrar na UI
-        initWebcam();
-        
-        // Carregar dados do jogo
-        loadGameData();
-        
-        // Configurar botão da câmera
-        setupCameraButton();
-        
-        // Resetar peças fotografadas ao entrar na UI
-        resetPhotographedPieces();
-        
-        // Inicializar contador de peças
-        initPhotoCounter();
-        
-        // Chamar função original se existir
-        if (originalOnUIEnter) {
-            originalOnUIEnter.call(this);
+    try {
+        // Integração com o sistema modular de telas
+        if (window.screenManager) {
+            console.log('🔗 Integrando com ScreenManager');
+            
+            // O puzzleManager já está integrado automaticamente
+            // Não precisa de configuração adicional
+        } else {
+            console.log('⚠️ ScreenManager não disponível ainda');
         }
-    };
-    
-    const originalOnUIExit = window.screenManager.onUIExit;
-    window.screenManager.onUIExit = function() {
-        console.log('🛑 Finalizando experiência AR...');
-        
-        // Limpar peças quando sair da UI
-        clearAllPecas();
-        
-        // Resetar peças fotografadas ao sair da UI
-        resetPhotographedPieces();
-        
-        // Chamar função original se existir
-        if (originalOnUIExit) {
-            originalOnUIExit.call(this);
-        }
-    };
-    
-    // Exemplo de como adicionar uma nova tela dinamicamente
-    // window.screenManager.addScreen('results', {
-    //     elementId: 'results-screen',
-    //     next: 'main',
-    //     onEnter: () => {
-    //         console.log('Mostrando resultados...');
-    //         // Lógica para mostrar resultados
-    //     },
-    //     onExit: () => {
-    //         console.log('Saindo dos resultados...');
-    //         // Lógica para limpar resultados
-    //     }
-    // });
-    
-    console.log('✅ Sistema de gerenciamento de telas integrado!');
-}
-
-// Função para configurar o botão da câmera
-function setupCameraButton() {
-    const cameraButton = document.getElementById('camera-icon');
-    if (cameraButton) {
-        cameraButton.addEventListener('click', function() {
-            console.log('📸 Botão da câmera clicado!');
-            triggerCameraFlash();
-        });
-        
-        console.log('📷 Botão da câmera configurado');
+    } catch (error) {
+        console.error('❌ Erro na integração com ScreenManager:', error);
     }
 }
 
@@ -874,103 +599,64 @@ function setupCameraButton() {
 function triggerCameraFlash() {
     const flashElement = document.getElementById('camera-flash');
     if (flashElement) {
-        // Adicionar classe para ativar o flash
         flashElement.classList.add('active');
         
-        // Remover classe após a animação
         setTimeout(() => {
             flashElement.classList.remove('active');
         }, 300);
         
-        console.log('⚡ Efeito de flash ativado!');
-        
-        // Tocar som de câmera (opcional)
         playCameraSound();
-        
-        // Vibrar dispositivo (se suportado)
         vibrateDevice();
-        
-        // Detectar se há peças visíveis
         checkVisiblePieces();
-        
-        // Aqui você pode adicionar lógica adicional, como:
-        // - Salvar a foto
-        // - Capturar o estado atual da tela
-        // - Mostrar feedback visual
     }
 }
 
 // Função para tocar som de câmera
 function playCameraSound() {
     try {
-        // Criar contexto de áudio
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Gerar som de "click" da câmera
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        // Configurar som
         oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
         
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
         
-        // Tocar som
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
-        
-        console.log('🔊 Som de câmera tocado');
     } catch (error) {
-        console.log('🔇 Som de câmera não disponível:', error.message);
+        // Som não disponível
     }
 }
 
 // Função para vibrar dispositivo
 function vibrateDevice() {
     if (navigator.vibrate) {
-        // Vibrar por 100ms
         navigator.vibrate(100);
-        console.log('📳 Dispositivo vibrou');
     }
 }
 
 // Função para verificar peças visíveis
 function checkVisiblePieces() {
-    // Verificar se há peças visíveis na cena (com classe peca-plane e visible=true)
     const allPieces = document.querySelectorAll('.peca-plane');
     
-    // Método 1: Verificar por atributo visible e posição na tela
     const visiblePieces = Array.from(allPieces).filter(piece => {
-        // Verificar se a peça está visível
         const isVisible = piece.getAttribute('visible') === 'true';
-        
-        // Verificar se está na tela
         const rect = piece.getBoundingClientRect();
         const isOnScreen = rect.width > 0 && rect.height > 0 && 
                           rect.top >= 0 && rect.left >= 0 && 
                           rect.bottom <= window.innerHeight && 
                           rect.right <= window.innerWidth;
-        
-        // Verificar se NÃO foi fotografada ainda
         const notPhotographed = !isPiecePhotographed(piece);
         
         return isVisible && isOnScreen && notPhotographed;
     });
     
-    // Método 2: Verificar por estilo CSS (backup)
-    const cssVisiblePieces = Array.from(allPieces).filter(piece => {
-        const style = window.getComputedStyle(piece);
-        const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-        const notPhotographed = !isPiecePhotographed(piece);
-        return isVisible && notPhotographed;
-    });
-    
-    // Método 3: Verificar por A-Frame object3D (mais preciso)
     const aframeVisiblePieces = Array.from(allPieces).filter(piece => {
         if (piece.object3D) {
             const isVisible = piece.object3D.visible === true;
@@ -980,115 +666,45 @@ function checkVisiblePieces() {
         return false;
     });
     
-    console.log(`🔍 Verificando peças: ${allPieces.length} total`);
-    console.log(`🔍 Método 1 (visible + screen): ${visiblePieces.length} peças`);
-    console.log(`🔍 Método 2 (CSS): ${cssVisiblePieces.length} peças`);
-    console.log(`🔍 Método 3 (A-Frame): ${aframeVisiblePieces.length} peças`);
-    
-    // Debug: mostrar detalhes de cada peça
-    allPieces.forEach((piece, index) => {
-        const isVisible = piece.getAttribute('visible') === 'true';
-        const rect = piece.getBoundingClientRect();
-        const aframeVisible = piece.object3D ? piece.object3D.visible : 'N/A';
-        console.log(`🔍 Peça ${index + 1}: ID=${piece.id}, Visible=${isVisible}, AFrame=${aframeVisible}, Rect=${JSON.stringify(rect)}`);
-    });
-    
-    // Usar o método mais confiável (A-Frame object3D se disponível, senão visible + screen)
     const finalVisiblePieces = aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces;
     
     if (finalVisiblePieces.length > 0) {
-        console.log(`📸 Foto tirada com ${finalVisiblePieces.length} peça(s) visível(is)!`);
-        
-        // Marcar todas as peças visíveis como fotografadas
         finalVisiblePieces.forEach(piece => {
             markPieceAsPhotographed(piece);
         });
         
-        // Pegar a primeira peça visível para mostrar sua imagem
         const firstPiece = finalVisiblePieces[0];
         const pieceImageSrc = firstPiece.getAttribute('material')?.src || null;
         
-        // Mostrar feedback positivo com imagem da peça
         showPhotoFeedback(true, finalVisiblePieces.length, pieceImageSrc);
     } else {
-        console.log('📸 Foto tirada sem peças visíveis');
-        
-        // Mostrar feedback negativo
         showPhotoFeedback(false, 0, null);
     }
 }
-
-// Função de debug para testar detecção de peças (pode ser chamada no console)
-function debugPieces() {
-    console.log('🔍 === DEBUG DE PEÇAS ===');
-    
-    const allPieces = document.querySelectorAll('.peca-plane');
-    console.log(`Total de peças encontradas: ${allPieces.length}`);
-    
-    if (allPieces.length === 0) {
-        console.log('❌ Nenhuma peça encontrada! Verifique se:');
-        console.log('   - As peças foram criadas corretamente');
-        console.log('   - A classe "peca-plane" está sendo aplicada');
-        console.log('   - O modelo 3D foi carregado');
-        return;
-    }
-    
-    allPieces.forEach((piece, index) => {
-        console.log(`\n🔍 Peça ${index + 1}:`);
-        console.log(`   ID: ${piece.id}`);
-        console.log(`   Classe: ${piece.className}`);
-        console.log(`   Visible (attr): ${piece.getAttribute('visible')}`);
-        console.log(`   A-Frame visible: ${piece.object3D ? piece.object3D.visible : 'N/A'}`);
-        
-        const rect = piece.getBoundingClientRect();
-        console.log(`   Posição na tela: ${JSON.stringify(rect)}`);
-        
-        const style = window.getComputedStyle(piece);
-        console.log(`   CSS display: ${style.display}`);
-        console.log(`   CSS visibility: ${style.visibility}`);
-        console.log(`   CSS opacity: ${style.opacity}`);
-    });
-    
-    console.log('\n🔍 === FIM DO DEBUG ===');
-}
-
-// Expor função de debug globalmente
-window.debugPieces = debugPieces;
-
-// Variável global para rastrear peças já fotografadas
-let photographedPieces = new Set();
 
 // Função para marcar peça como fotografada
 function markPieceAsPhotographed(piece) {
     const pieceId = piece.id;
     photographedPieces.add(pieceId);
-    console.log(`📸 Peça ${pieceId} marcada como fotografada`);
     
-    // Adicionar classe visual para indicar que foi fotografada
     piece.classList.add('photographed');
     
-    // Opcional: adicionar efeito visual (ex: transparência reduzida)
     piece.setAttribute('material', {
         ...piece.getAttribute('material'),
         opacity: 0.3,
         transparent: true
     });
     
-    // Atualizar contador de peças fotografadas
     updatePhotoCounter();
     
-    // Verificar se todas as peças foram fotografadas
     if (photographedPieces.size >= document.querySelectorAll('.peca-plane').length) {
-        console.log('🎉 Todas as peças foram fotografadas!');
-        
-        // Iniciar quebra-cabeça após um delay
         setTimeout(() => {
             if (window.puzzleManager) {
                 window.puzzleManager.startPuzzle();
             } else {
                 console.error('❌ Puzzle Manager não encontrado');
             }
-        }, 2000); // 2 segundos de delay
+        }, 2000);
     }
 }
 
@@ -1097,16 +713,13 @@ function isPiecePhotographed(piece) {
     return photographedPieces.has(piece.id);
 }
 
-// Função para resetar peças fotografadas (útil para nova fase)
+// Função para resetar peças fotografadas
 function resetPhotographedPieces() {
     photographedPieces.clear();
-    console.log('🔄 Peças fotografadas resetadas');
     
-    // Remover classe visual de todas as peças
     const allPieces = document.querySelectorAll('.peca-plane');
     allPieces.forEach(piece => {
         piece.classList.remove('photographed');
-        // Restaurar opacidade original
         const material = piece.getAttribute('material');
         if (material) {
             piece.setAttribute('material', {
@@ -1117,14 +730,8 @@ function resetPhotographedPieces() {
         }
     });
     
-    // Atualizar contador de peças fotografadas
     updatePhotoCounter();
 }
-
-// Expor funções globalmente para debug
-window.markPieceAsPhotographed = markPieceAsPhotographed;
-window.isPiecePhotographed = isPiecePhotographed;
-window.resetPhotographedPieces = resetPhotographedPieces;
 
 // Função para atualizar o contador de peças fotografadas
 function updatePhotoCounter() {
@@ -1139,29 +746,20 @@ function updatePhotoCounter() {
         photoCountElement.textContent = photographedCount;
         totalPiecesElement.textContent = totalPieces;
         
-        // Adicionar animação de atualização
         counterElement.classList.add('updated');
         setTimeout(() => {
             counterElement.classList.remove('updated');
         }, 500);
-        
-        console.log(`📊 Contador atualizado: ${photographedCount}/${totalPieces} peças`);
     }
 }
 
 // Função para inicializar o contador
 function initPhotoCounter() {
     updatePhotoCounter();
-    console.log('📊 Contador de peças inicializado');
 }
-
-// Expor função globalmente para debug
-window.updatePhotoCounter = updatePhotoCounter;
-window.initPhotoCounter = initPhotoCounter;
 
 // Função para mostrar feedback da foto
 function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
-    // Criar elemento de feedback
     const feedback = document.createElement('div');
     feedback.style.cssText = `
         position: fixed;
@@ -1182,7 +780,6 @@ function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
         max-width: 300px;
     `;
     
-    // Criar conteúdo do feedback
     const content = document.createElement('div');
     content.style.cssText = `
         display: flex;
@@ -1191,7 +788,6 @@ function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
         gap: 15px;
     `;
     
-    // Adicionar texto
     const text = document.createElement('div');
     text.textContent = success 
         ? `📸 Foto tirada! ${pieceCount} peça(s) capturada(s)`
@@ -1202,7 +798,6 @@ function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
     `;
     content.appendChild(text);
     
-    // Adicionar imagem da peça se disponível e for sucesso
     if (success && pieceImageSrc && pieceCount > 0) {
         const pieceImage = document.createElement('img');
         pieceImage.src = pieceImageSrc;
@@ -1217,15 +812,12 @@ function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
             animation: pieceImagePop 0.5s ease-out 0.3s both;
         `;
         
-        // Adicionar fallback se a imagem não carregar
         pieceImage.onerror = () => {
             pieceImage.style.display = 'none';
-            console.log('⚠️ Imagem da peça não carregou:', pieceImageSrc);
         };
         
         content.appendChild(pieceImage);
         
-        // Adicionar texto adicional se houver múltiplas peças
         if (pieceCount > 1) {
             const extraText = document.createElement('div');
             extraText.textContent = `+${pieceCount - 1} mais`;
@@ -1241,10 +833,24 @@ function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
     feedback.appendChild(content);
     document.body.appendChild(feedback);
     
-    // Remover feedback após 2 segundos
     setTimeout(() => {
         if (feedback.parentNode) {
             feedback.parentNode.removeChild(feedback);
         }
     }, 2000);
-} 
+}
+
+// Exportar funções globais para uso pelos módulos
+window.triggerCameraFlash = triggerCameraFlash;
+window.checkVisiblePieces = checkVisiblePieces;
+window.markPieceAsPhotographed = markPieceAsPhotographed;
+window.isPiecePhotographed = isPiecePhotographed;
+window.updatePhotoCounter = updatePhotoCounter;
+window.playCameraSound = playCameraSound;
+window.vibrateDevice = vibrateDevice;
+window.showPhotoFeedback = showPhotoFeedback;
+window.resetPhotographedPieces = resetPhotographedPieces;
+window.clearAllPecas = clearAllPecas;
+window.initWebcam = initWebcam;
+window.loadGameData = loadGameData;
+window.toggleMode = toggleMode; 

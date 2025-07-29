@@ -134,9 +134,27 @@
     </a-scene>
 
     <!-- Scripts da aplicação (carregados por último) -->
-    <script src="screen-manager.js"></script>
-    <script src="puzzle-manager.js"></script>
+    
+    <!-- Script principal (carregado primeiro para disponibilizar funções globais) -->
     <script src="script.js"></script>
+    
+    <!-- Módulos de Tela (carregados depois do script principal) -->
+    <script src="js/modules/screens/base-screen.js"></script>
+    <script src="js/modules/screens/main-screen.js"></script>
+    <script src="js/modules/screens/tutorial-screen.js"></script>
+    <script src="js/modules/screens/ui-screen.js"></script>
+    <script src="js/modules/screens/puzzle-screen.js"></script>
+    <script src="js/modules/screens/congratulations-screen.js"></script>
+    <script src="js/modules/screen-manager.js"></script>
+    
+    <!-- Módulos do Puzzle (carregados na ordem correta) -->
+    <script src="js/modules/data-manager.js"></script>
+    <script src="js/modules/element-manager.js"></script>
+    <script src="js/modules/result-manager.js"></script>
+    <script src="js/modules/feedback-manager.js"></script>
+    <script src="js/modules/drag-drop-manager.js"></script>
+    <script src="js/modules/puzzle-game-manager.js"></script>
+    <script src="puzzle-manager.js"></script>
 </body>
 
 </html>

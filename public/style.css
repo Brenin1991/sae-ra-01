@@ -613,13 +613,21 @@ a-scene {
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 2000;
+    z-index: 15000;
     display: none;
+    opacity: 0;
+    visibility: hidden;
     flex-direction: column;
     padding: 20px;
     box-sizing: border-box;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 }
 
+.puzzle-screen.ativo {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
 
 
 .puzzle-container {
@@ -774,7 +782,6 @@ a-scene {
     width: 100vw;
     height: 100vh;
     z-index: 3000;
-    display: none;
     align-items: center;
     justify-content: center;
     animation: congratulationsEnter 0.8s ease-out;
@@ -935,4 +942,96 @@ a-scene {
         flex-direction: column;
         gap: 20px;
     }
+} 
+
+/* Animações de confete */
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Elementos da tela de parabéns */
+.congratulations-element {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease-out;
+}
+
+.congratulations-element.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#congratulations-screen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    text-align: center;
+}
+
+#congratulations-message {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+#score-display, #time-display {
+    font-size: 1.5rem;
+    margin: 1rem 0;
+    background: rgba(255,255,255,0.1);
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+#stars-display {
+    font-size: 3rem;
+    margin: 2rem 0;
+    animation: starPulse 2s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.congratulations-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.congratulations-button {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.congratulations-button:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 } 
