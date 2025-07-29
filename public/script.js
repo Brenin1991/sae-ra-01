@@ -88,8 +88,18 @@ let isARMode = true;
 let currentStream = null;
 let photographedPieces = new Set();
 
-// Componente billboard já registrado no AR Game Manager
-// AFRAME.registerComponent('billboard', { ... });
+// Componente billboard para orientar objetos sempre para a câmera
+AFRAME.registerComponent('billboard', {
+    init: function() {
+        this.camera = document.querySelector('[camera]');
+    },
+    tick: function() {
+        if (this.camera) {
+            const cameraPosition = this.camera.getAttribute('position');
+            this.el.object3D.lookAt(cameraPosition);
+        }
+    }
+});
 
 // Componente para detecção automática baseada na DIREÇÃO da câmera (SEM MOUSE!)
 AFRAME.registerComponent('auto-detect', {
