@@ -501,13 +501,20 @@ function setupInteractiveObjects(objects) {
     showDebugMessage('🎯 Criando objetos interativos...');
     showDebugMessage('🔍 Modelo carregado: ' + (loadedModel ? 'SIM' : 'NÃO'));
     
+    // CRIAR OBJETOS NORMALMENTE (SEM DELAY)
     objects.forEach((obj, index) => {
+        showDebugMessage(`🎯 Criando objeto ${index + 1}/${objects.length}: ${obj.id}`);
+        
+        // CRIAR PLANE E PEÇA JUNTOS
+        createInteractivePlane(obj, container, index);
+        
+        // OPERAÇÃO NO MODELO DEPOIS (se necessário)
         if (loadedModel) {
             hideObjectInModel(obj.id);
         }
-        
-        createInteractivePlane(obj, container, index);
     });
+    
+    showDebugMessage('✅ Todos os objetos criados simultaneamente');
     
     showDebugMessage('🔍 Container children final: ' + container.children.length);
     showDebugMessage('✅ setupInteractiveObjects concluída');
@@ -611,8 +618,15 @@ function createInteractivePlane(obj, container, index) {
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
-    pecaPlane.setAttribute('visible', 'false'); // INVISÍVEL POR PADRÃO - APARECE SÓ QUANDO MIRAR
+    pecaPlane.setAttribute('visible', 'true'); // INVISÍVEL POR PADRÃO - APARECE SÓ QUANDO MIRAR
     pecaPlane.setAttribute('billboard', '');
+    pecaPlane.setAttribute('material', {
+        src: obj.peca,
+        transparent: true,
+        alphaTest: 0.1,
+        emissive: '#FFFFFF',
+        emissiveIntensity: 0.4
+    });
     
     const timestamp = Date.now() + Math.random();
     pecaPlane.id = 'peca-' + obj.id + '-' + timestamp;
@@ -629,92 +643,9 @@ function createInteractivePlane(obj, container, index) {
     showDebugMessage('🎯 Referência da peça salva no plane');
     
 
-    
-    // Verificar também a imagem do objeto
-    const objImage = new Image();
-    objImage.onload = () => {
-        showDebugMessage('✅ Imagem do objeto carregada: ' + obj.imagem);
-    };
-    objImage.onerror = () => {
-        showDebugMessage('❌ ERRO: Imagem do objeto não encontrada: ' + obj.imagem);
-        showDebugMessage('🔍 Tentando URL completa: ' + window.location.origin + '/' + obj.imagem);
-    };
-    objImage.src = obj.imagem;
-    
-    // PRÉ-CARREGAR A IMAGEM ANTES DE CRIAR O MATERIAL
-    showDebugMessage('🔄 PRÉ-CARREGANDO: ' + obj.peca);
-    const img = new Image();
-    img.onload = () => {
-        showDebugMessage('✅ IMAGEM CARREGADA: ' + obj.peca);
-        pecaPlane.setAttribute('material', {
-            src: obj.peca,
-            transparent: true,
-            alphaTest: 0.1,
-            emissive: '#FFFFFF',
-            emissiveIntensity: 0.4
-        });
-        showDebugMessage('🎯 MATERIAL APLICADO: ' + obj.peca);
-    };
-    img.onerror = () => {
-        showDebugMessage('❌ ERRO AO CARREGAR: ' + obj.peca);
-        // Fallback para cor simples se a imagem falhar
-        pecaPlane.setAttribute('material', {
-            color: '#FF0000',
-            transparent: true,
-            alphaTest: 0.1
-        });
-    };
-    img.src = obj.peca;
-    
     // Peça já foi adicionada acima
     plane.pecaPlane = pecaPlane;
     showDebugMessage('🎯 Referência da peça salva no plane');
-    
-    // Aguardar um frame para garantir que o A-Frame processou
-    requestAnimationFrame(() => {
-        const isVisible = pecaPlane.getAttribute('visible');
-        const position = pecaPlane.getAttribute('position');
-        showDebugMessage('🎯 Peça após 1 frame - visible: ' + isVisible + ', position: ' + position);
-    });
-    
-    showDebugMessage(`✅ Plane criado para objeto ${obj.id}`);
-    showDebugMessage(`✅ Peça criada para objeto ${obj.id} (sempre visível)`);
-    
-    // Verificação imediata
-    const allPieces = document.querySelectorAll('.peca-plane');
-    showDebugMessage(`🔍 Verificação IMEDIATA: ${allPieces.length} peças encontradas`);
-    
-    // Verificar se as peças foram realmente criadas
-    setTimeout(() => {
-        const allPieces = document.querySelectorAll('.peca-plane');
-        showDebugMessage(`🔍 Verificação 1s: ${allPieces.length} peças encontradas`);
-        
-        allPieces.forEach((piece, i) => {
-            const isVisible = piece.getAttribute('visible');
-            const position = piece.getAttribute('position');
-            const material = piece.getAttribute('material');
-            const src = material ? material.src : 'SEM MATERIAL';
-            showDebugMessage(`🔍 Peça ${i+1}: visible=${isVisible}, position=${position}, src=${src}`);
-        });
-    }, 1000);
-    
-    // Verificação adicional após 3 segundos
-    setTimeout(() => {
-        const allPieces = document.querySelectorAll('.peca-plane');
-        showDebugMessage(`🔍 Verificação 3s: ${allPieces.length} peças encontradas`);
-        
-        allPieces.forEach((piece, i) => {
-            const material = piece.getAttribute('material');
-            const src = material ? material.src : 'SEM MATERIAL';
-            showDebugMessage(`🔍 Peça ${i+1}: material.src = ${src}`);
-        });
-        
-        if (allPieces.length === 0) {
-            showDebugMessage('⚠️ ATENÇÃO: Nenhuma peça encontrada após 3s - problema geral');
-        } else {
-            showDebugMessage('✅ SUCESSO: Peças com imagens funcionando!');
-        }
-    }, 3000);
 }
 
 // Inicializar webcam
@@ -816,64 +747,6 @@ function toggleMode() {
     }
 }
 
-// Aguardar DOM carregar antes de inicializar
-document.addEventListener('DOMContentLoaded', function() {
-    const toggleButton = document.getElementById('toggleMode');
-    if (toggleButton) {
-        toggleButton.addEventListener('click', toggleMode);
-    }
-    
-    const clearButton = document.getElementById('clearPecas');
-    if (clearButton) {
-        clearButton.addEventListener('click', clearAllPecas);
-    }
-    
-    const sky = document.querySelector('a-sky');
-    if (sky) {
-        sky.setAttribute('visible', 'false');
-    }
-    
-    initWebcam();
-    
-    const scene = document.querySelector('a-scene');
-    if (scene) {
-        showDebugMessage('✅ Cena A-Frame encontrada');
-        
-        // Verificar se A-Frame está carregado
-        if (typeof AFRAME === 'undefined') {
-            showDebugMessage('❌ ERRO: A-Frame não está carregado!');
-        } else {
-            showDebugMessage('✅ A-Frame carregado corretamente');
-        }
-        
-        // Verificar se a cena já está carregada
-        if (scene.hasLoaded) {
-            showDebugMessage('🎮 Cena já carregada - inicializando imediatamente...');
-            loadGameData();
-            setupAutoReset();
-            showDebugMessage('✅ Sistema inicializado imediatamente!');
-        } else {
-            showDebugMessage('⏳ Aguardando carregamento da cena...');
-            scene.addEventListener('loaded', function() {
-                showDebugMessage('🎮 Cena A-Frame carregada - inicializando sistema...');
-                
-                loadGameData();
-                
-                const video = document.getElementById('webcam');
-                if (video && !video.srcObject && isARMode) {
-                    initWebcam();
-                }
-                
-                setupAutoReset();
-                
-                showDebugMessage('✅ Sistema inicializado com sucesso!');
-            });
-        }
-    } else {
-        showDebugMessage('❌ Cena A-Frame não encontrada!');
-    }
-});
-
 // Sistema simplificado de reset por tempo
 function setupAutoReset() {
     console.log('📱 Sistema de reset automático por tempo');
@@ -916,7 +789,6 @@ function triggerCameraFlash() {
         
         playCameraSound();
         vibrateDevice();
-        // checkVisiblePieces(); // Removido para evitar chamada duplicada
     }
 }
 
