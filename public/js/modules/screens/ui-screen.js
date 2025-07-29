@@ -160,13 +160,6 @@ class UIScreen extends BaseScreen {
             console.error('❌ triggerCameraFlash não encontrada!');
         }
         
-        if (window.checkVisiblePieces) {
-            console.log('✅ Chamando checkVisiblePieces...');
-            window.checkVisiblePieces();
-        } else {
-            console.error('❌ checkVisiblePieces não encontrada!');
-        }
-        
         if (window.playCameraSound) {
             console.log('✅ Chamando playCameraSound...');
             window.playCameraSound();
@@ -180,32 +173,26 @@ class UIScreen extends BaseScreen {
         } else {
             console.error('❌ vibrateDevice não encontrada!');
         }
+        
+        // Chamar checkVisiblePieces APENAS UMA VEZ
+        if (window.checkVisiblePieces) {
+            console.log('✅ Chamando checkVisiblePieces...');
+            window.checkVisiblePieces();
+        } else {
+            console.error('❌ checkVisiblePieces não encontrada!');
+        }
     }
     
     triggerCameraFlash() {
-        // Usar a função global do script.js
+        // Usar APENAS a função global do script.js
         if (window.triggerCameraFlash) {
             window.triggerCameraFlash();
         } else {
-            // Fallback local
-            const flashElement = document.getElementById('camera-flash');
-            if (flashElement) {
-                flashElement.classList.add('active');
-                setTimeout(() => {
-                    flashElement.classList.remove('active');
-                }, 300);
-            }
+            console.error('❌ Função triggerCameraFlash não encontrada no script.js');
         }
     }
     
-    checkVisiblePieces() {
-        // Usar APENAS a função global do script.js
-        if (window.checkVisiblePieces) {
-            window.checkVisiblePieces();
-        } else {
-            console.error('❌ Função checkVisiblePieces não encontrada no script.js');
-        }
-    }
+
     
     markPieceAsPhotographed(piece) {
         // Usar APENAS a função global do script.js
@@ -276,63 +263,30 @@ class UIScreen extends BaseScreen {
     }
     
     playCameraSound() {
-        try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.1);
-        } catch (error) {
-            // Som não disponível
+        // Usar APENAS a função global do script.js
+        if (window.playCameraSound) {
+            window.playCameraSound();
+        } else {
+            console.error('❌ Função playCameraSound não encontrada no script.js');
         }
     }
     
     vibrateDevice() {
-        if (navigator.vibrate) {
-            navigator.vibrate(100);
+        // Usar APENAS a função global do script.js
+        if (window.vibrateDevice) {
+            window.vibrateDevice();
+        } else {
+            console.error('❌ Função vibrateDevice não encontrada no script.js');
         }
     }
     
     showPhotoFeedback(success, pieceCount) {
-        const feedback = document.createElement('div');
-        feedback.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10000;
-            background: ${success ? 'rgba(0, 255, 0, 0.9)' : 'rgba(255, 0, 0, 0.9)'};
-            color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            animation: feedbackFade 2s ease-out forwards;
-        `;
-        
-        feedback.textContent = success 
-            ? `📸 Foto tirada! ${pieceCount} peça(s) capturada(s)`
-            : '📸 Nenhuma peça encontrada na foto';
-        
-        document.body.appendChild(feedback);
-        
-        setTimeout(() => {
-            if (feedback.parentNode) {
-                feedback.parentNode.removeChild(feedback);
-            }
-        }, 2000);
+        // Usar APENAS a função global do script.js
+        if (window.showPhotoFeedback) {
+            window.showPhotoFeedback(success, pieceCount);
+        } else {
+            console.error('❌ Função showPhotoFeedback não encontrada no script.js');
+        }
     }
     
     stopCamera() {
