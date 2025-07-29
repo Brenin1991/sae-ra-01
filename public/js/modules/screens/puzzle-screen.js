@@ -72,9 +72,12 @@ class PuzzleScreen extends BaseScreen {
     }
     
     initializePuzzle() {
-        // Inicializar o puzzle
-        if (window.puzzleManager) {
-            window.puzzleManager.startPuzzle();
+        // Inicializar o puzzle sem chamar showPuzzleScreen novamente
+        console.log('🧩 Inicializando puzzle...');
+        
+        if (window.puzzleManager && window.puzzleManager.gameManager) {
+            // Chamar diretamente o método de inicialização sem mostrar tela
+            window.puzzleManager.gameManager.createPuzzleElements();
         }
     }
     

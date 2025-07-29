@@ -21,26 +21,52 @@ class ScreenManager {
     }
     
     registerDefaultScreens() {
+        console.log('🔄 Registrando telas padrão...');
+        
         // Registrar telas padrão se as classes existirem
         if (window.MainScreen) {
             this.registerScreen('main', new MainScreen());
+            console.log('✅ MainScreen disponível');
+        } else {
+            console.error('❌ MainScreen não encontrada');
         }
         
         if (window.TutorialScreen) {
             this.registerScreen('tutorial', new TutorialScreen());
+            console.log('✅ TutorialScreen disponível');
+        } else {
+            console.error('❌ TutorialScreen não encontrada');
         }
         
         if (window.UIScreen) {
             this.registerScreen('ui', new UIScreen());
+            console.log('✅ UIScreen disponível');
+        } else {
+            console.error('❌ UIScreen não encontrada');
         }
         
         if (window.PuzzleScreen) {
             this.registerScreen('puzzle', new PuzzleScreen());
+            console.log('✅ PuzzleScreen disponível');
+        } else {
+            console.error('❌ PuzzleScreen não encontrada');
         }
         
         if (window.CongratulationsScreen) {
             this.registerScreen('congratulations', new CongratulationsScreen());
+            console.log('✅ CongratulationsScreen disponível');
+        } else {
+            console.error('❌ CongratulationsScreen não encontrada');
         }
+        
+        if (window.SelfieScreen) {
+            this.registerScreen('selfie', new SelfieScreen());
+            console.log('✅ SelfieScreen disponível');
+        } else {
+            console.error('❌ SelfieScreen não encontrada');
+        }
+        
+        console.log('📋 Telas registradas:', Object.keys(this.screens));
     }
     
     // Registrar uma nova tela
@@ -51,28 +77,38 @@ class ScreenManager {
     
     // Mostrar uma tela
     showScreen(screenName) {
+        console.log(`🔄 Tentando mostrar tela: ${screenName}`);
+        console.log(`🔄 Tela atual: ${this.currentScreen}`);
+        console.log(`🔄 Tela existe: ${!!this.screens[screenName]}`);
+        console.log(`🔄 Em transição: ${this.isTransitioning}`);
+        
         if (this.isTransitioning || !this.screens[screenName]) {
             console.warn(`⚠️ Tela "${screenName}" não encontrada ou transição em andamento`);
             return;
         }
         
         this.isTransitioning = true;
+        console.log(`🔄 Iniciando transição para: ${screenName}`);
         
         // Executar função de saída da tela atual
         if (this.currentScreen && this.screens[this.currentScreen]) {
+            console.log(`🔄 Escondendo tela atual: ${this.currentScreen}`);
             this.screens[this.currentScreen].hide();
         }
         
         // Mostrar a nova tela
         const newScreen = this.screens[screenName];
+        console.log(`🔄 Mostrando nova tela: ${screenName}`);
         newScreen.show();
         
         // Atualizar tela atual
         this.currentScreen = screenName;
+        console.log(`✅ Transição concluída. Tela atual: ${this.currentScreen}`);
         
         // Finalizar transição
         setTimeout(() => {
             this.isTransitioning = false;
+            console.log(`🔄 Transição finalizada`);
         }, 600);
     }
     
@@ -169,9 +205,17 @@ class ScreenManager {
     }
 }
 
-// Inicializar o gerenciador de telas quando o DOM estiver carregado
+// Inicializar quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-    window.screenManager = new ScreenManager();
+    // Aguardar um pouco para garantir que todos os scripts estejam carregados
+    setTimeout(() => {
+        try {
+            window.screenManager = new ScreenManager();
+            console.log('✅ ScreenManager inicializado com sucesso');
+        } catch (error) {
+            console.error('❌ Erro ao inicializar ScreenManager:', error);
+        }
+    }, 100);
 });
 
 // Exportar para uso global

@@ -212,7 +212,7 @@ input, textarea {
     width: 100%;
 }
 
-#ui .camera-icon {
+.camera-icon {
     position: fixed;
     bottom: 5%;
     right: 10%;
@@ -975,7 +975,6 @@ a-scene {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     z-index: 10000;
     justify-content: center;
     align-items: center;
@@ -983,6 +982,73 @@ a-scene {
     color: white;
     text-align: center;
 }
+
+#parabens-header {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#parabens-texto-01 {
+    position: fixed;
+    top: 63%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#narracao-icon-parabens {
+    position: fixed;
+    top: 40%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+}
+
+#premio-01 {
+    position: fixed;
+    top: 75%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#btn-next {
+    position: fixed;
+    top: 75%;
+    left: 85%;
+    transform: translate(-50%, -50%);
+}
+
+#btn-certificado {
+    position: fixed;
+    bottom: 5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.puzzle-resultado-congratulations {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px;
+    height: 250px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    pointer-events: none;
+    z-index: 10001;
+    border-radius: 10px;
+    display: block;
+    visibility: visible;
+}
+
+.puzzle-resultado-congratulations.ativo {
+    opacity: 1 !important;
+}
+
+
 
 #congratulations-message {
     font-size: 2.5rem;
@@ -1034,4 +1100,183 @@ a-scene {
     background: rgba(255,255,255,0.3);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+} 
+
+/* ===== TELA DE SELFIE ===== */
+.selfie-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 16000;
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    background: #000;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+#certificado-top {
+    position: fixed;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+#certificado-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0%;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.selfie-screen.ativo {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#selfie-camera {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Espelhar para selfie */
+}
+
+#camera-icon-selfie {
+    position: fixed;
+    bottom: 5%;
+    right: 5%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    z-index: 16001;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+#camera-icon-selfie:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+}
+
+#camera-icon-selfie:active {
+    transform: scale(0.95);
+} 
+
+
+/* Responsividade para botão de certificado */
+@media (max-width: 768px) {
+    #btn-certificado {
+        max-width: 80%;
+        height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    #btn-certificado {
+        max-width: 90%;
+    }
+} 
+
+/* ===== ANIMAÇÕES DE TRANSIÇÃO DE TELAS ===== */
+
+/* Animações de entrada e saída - DESABILITADAS TEMPORARIAMENTE */
+.entering {
+    /* animation: screenEnter 0.5s ease-out forwards; */
+}
+
+.screen-exiting {
+    /* animation: screenExit 0.4s ease-in forwards; */
+}
+
+@keyframes screenEnter {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes screenExit {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Animações específicas para cada tela */
+#main {
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#tutorial {
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#ui {
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.puzzle-screen {
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.congratulations-screen {
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selfie-screen {
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efeitos de hover para botões durante transições - DESABILITADOS */
+.entering .selfie-button,
+.entering .puzzle-button,
+.entering .congratulations-button {
+    /* animation: buttonFade 0.6s ease-out 0.2s both; */
+}
+
+@keyframes buttonFade {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Animações de elementos internos - DESABILITADAS */
+.entering .puzzle-header,
+.entering .selfie-header,
+.entering .congratulations-content {
+    /* animation: contentFade 0.6s ease-out 0.1s both; */
+}
+
+@keyframes contentFade {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Otimizações para mobile */
+@media (max-width: 768px) {
+    .entering {
+        /* animation-duration: 0.4s; */
+    }
+    
+    .screen-exiting {
+        /* animation-duration: 0.3s; */
+    }
 } 

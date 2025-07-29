@@ -30,6 +30,34 @@ class PuzzleGameManager {
         
         this.createPuzzleElements();
         this.showPuzzleScreen();
+        
+        // Adicionar listener para tecla de simulação
+        this.setupSimulationKey();
+    }
+    
+    // Configurar tecla para simular montagem completa
+    setupSimulationKey() {
+        const handleKeyPress = (event) => {
+            // Tecla 'C' para completar puzzle
+            if (event.key.toLowerCase() === 'c') {
+                console.log('🎮 Tecla C pressionada - Simulando montagem completa');
+                this.simulatePuzzleCompletion();
+            }
+        };
+        
+        // Adicionar listener
+        document.addEventListener('keydown', handleKeyPress);
+        
+        // Armazenar referência para remover depois
+        this.simulationKeyHandler = handleKeyPress;
+    }
+    
+    // Remover listener de simulação
+    removeSimulationKey() {
+        if (this.simulationKeyHandler) {
+            document.removeEventListener('keydown', this.simulationKeyHandler);
+            this.simulationKeyHandler = null;
+        }
     }
     
     // Criar elementos do quebra-cabeça
@@ -122,69 +150,37 @@ class PuzzleGameManager {
         // Feedback visual de conclusão
         this.feedbackManager.showCompletionFeedback();
         
-        // Mostrar resultado após um delay maior
-        setTimeout(() => {
-            this.resultManager.showResult(this.dataManager.getPuzzleConfig());
-        }, 1500);
+        // Obter configuração do puzzle
+        const puzzleConfig = this.dataManager.getPuzzleConfig();
+        console.log('🔧 Configuração do puzzle:', puzzleConfig);
         
-        // Mostrar tela de parabéns após um delay muito maior
+        // Mostrar tela de parabéns após um delay
         setTimeout(() => {
-            this.feedbackManager.showCongratulationsScreen(timeTaken, this.completedPieces);
-        }, 6000);
+            this.feedbackManager.showCongratulationsScreen(timeTaken, this.completedPieces, puzzleConfig);
+        }, 1500);
     }
     
     // Mostrar tela do quebra-cabeça
     showPuzzleScreen() {
-        const puzzleScreen = document.getElementById('puzzle-screen');
-        console.log('🎮 Tentando mostrar tela do puzzle...');
-        console.log('🎮 Elemento puzzle-screen encontrado:', !!puzzleScreen);
+        console.log('🎮 Mostrando tela do puzzle via ScreenManager');
         
-        if (puzzleScreen) {
-            console.log('🎮 Estado atual do puzzle-screen:');
-            console.log('  - display:', puzzleScreen.style.display);
-            console.log('  - opacity:', puzzleScreen.style.opacity);
-            console.log('  - visibility:', puzzleScreen.style.visibility);
-            console.log('  - classes:', puzzleScreen.className);
-            
-            puzzleScreen.classList.add('ativo');
-            puzzleScreen.style.setProperty('display', 'flex', 'important');
-            puzzleScreen.style.setProperty('opacity', '1', 'important');
-            puzzleScreen.style.setProperty('visibility', 'visible', 'important');
-            
-            console.log('🎮 Estado após ativação:');
-            console.log('  - display:', puzzleScreen.style.display);
-            console.log('  - opacity:', puzzleScreen.style.opacity);
-            console.log('  - visibility:', puzzleScreen.style.visibility);
-            console.log('  - classes:', puzzleScreen.className);
-            console.log('🎮 Tela do puzzle ativada');
+        if (window.screenManager) {
+            window.screenManager.showScreen('puzzle');
         } else {
-            console.error('❌ Elemento puzzle-screen não encontrado');
-        }
-        
-        // Esconder tela UI
-        const uiScreen = document.getElementById('ui');
-        if (uiScreen) {
-            uiScreen.style.setProperty('display', 'none', 'important');
-            uiScreen.style.setProperty('opacity', '0', 'important');
-            console.log('👁️ Tela UI escondida');
+            console.error('❌ ScreenManager não disponível');
         }
     }
     
     // Esconder tela do quebra-cabeça
     hidePuzzleScreen() {
-        const puzzleScreen = document.getElementById('puzzle-screen');
-        if (puzzleScreen) {
-            puzzleScreen.classList.remove('ativo');
-            puzzleScreen.style.display = 'none';
-            puzzleScreen.style.opacity = '0';
-            console.log('👋 Tela do puzzle desativada');
-        }
+        console.log('👋 Escondendo tela do puzzle via ScreenManager');
         
-        // Reativar tela UI
-        const uiScreen = document.getElementById('ui');
-        if (uiScreen) {
-            uiScreen.style.display = 'block';
-            uiScreen.style.opacity = '1';
+        // Remover listener de simulação
+        this.removeSimulationKey();
+        
+        // Voltar para tela UI
+        if (window.screenManager) {
+            window.screenManager.showScreen('ui');
         }
     }
     
@@ -245,6 +241,21 @@ class PuzzleGameManager {
         
         // Completar o puzzle
         this.completePuzzle();
+    }
+    
+    // Método de teste para verificar se tudo funciona
+    testCompletePuzzle() {
+        console.log('🧪 Testando conclusão do puzzle...');
+        
+        // Garantir que os dados estão carregados
+        if (!this.dataManager.isDataLoaded()) {
+            console.log('📊 Carregando dados do puzzle...');
+            this.dataManager.loadPuzzleData().then(() => {
+                this.completePuzzle();
+            });
+        } else {
+            this.completePuzzle();
+        }
     }
 }
 

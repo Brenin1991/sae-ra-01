@@ -12,6 +12,9 @@
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/viewport-units-buggyfill@0.6.2/viewport-units-buggyfill.js"></script>
+    
+    <!-- html2canvas para captura de tela -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
 <body>    
@@ -59,7 +62,6 @@
             <div class="assembly-area">
                 <div id="puzzle-targets" class="puzzle-targets">
                     <!-- Targets serão criados dinamicamente -->
-                    <div id="puzzle-resultado" class="puzzle-resultado"></div>
                 </div>
             </div>
         </div>
@@ -67,24 +69,22 @@
 
     <!-- Tela de Parabéns -->
     <div id="congratulations-screen" class="congratulations-screen">
-        <div class="congratulations-content">
-            <div class="congratulations-icon">🎉</div>
-            <h1>Parabéns!</h1>
-            <p>Você completou o quebra-cabeça com sucesso!</p>
-            <div class="congratulations-stats">
-                <div class="stat">
-                    <span class="stat-number" id="total-pieces-completed">0</span>
-                    <span class="stat-label">peças montadas</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" id="time-taken">0</span>
-                    <span class="stat-label">segundos</span>
-                </div>
-            </div>
-            <div class="congratulations-buttons">
-                
-            </div>
-        </div>
+        <img id="parabens-header" src="assets/textures/parabens-header.png" alt="Parabéns">
+        <img id="narracao-icon-parabens" src="assets/textures/narracao-icon.png" alt="Parabéns">
+        <img id="parabens-texto-01" src="assets/textures/parabens-texto-01.png" alt="Parabéns">
+        <img id="btn-next" src="assets/textures/btn-next.png" alt="Parabéns">
+        <img id="premio-01" src="assets/textures/premio-01.png" alt="Parabéns">
+        <img id="btn-certificado" src="assets/textures/btn-certificado.png" alt="Parabéns">
+        <div id="puzzle-resultado-congratulations" class="puzzle-resultado-congratulations"></div>
+    </div>
+
+    <!-- Tela de Selfie -->
+    <div id="selfie-screen" class="selfie-screen">
+        <video id="selfie-camera" autoplay muted playsinline></video>
+        <canvas id="selfie-canvas" style="display: none;"></canvas>
+        <img id="certificado-top" src="assets/textures/certificado-top.png" alt="Selfie">
+        <img id="certificado-bottom" src="assets/textures/certificado-bottom.png" alt="Selfie">
+        <img id="camera-icon-selfie" class="camera-icon" src="assets/textures/camera-icon.png" alt="Camera">      
     </div>
 
     <!-- Efeito de flash da câmera -->
@@ -145,6 +145,7 @@
     <script src="js/modules/screens/ui-screen.js"></script>
     <script src="js/modules/screens/puzzle-screen.js"></script>
     <script src="js/modules/screens/congratulations-screen.js"></script>
+    <script src="js/modules/screens/selfie-screen.js"></script>
     <script src="js/modules/screen-manager.js"></script>
     
     <!-- Módulos do Puzzle (carregados na ordem correta) -->

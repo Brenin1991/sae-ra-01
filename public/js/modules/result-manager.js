@@ -10,9 +10,9 @@ class ResultManager {
     
     // Mostrar resultado do quebra-cabeça
     showResult(puzzleConfig) {
-        const resultadoElement = document.getElementById('puzzle-resultado');
+        const resultadoElement = document.getElementById('puzzle-resultado-congratulations');
         if (!resultadoElement) {
-            console.error('❌ Elemento puzzle-resultado não encontrado');
+            console.error('❌ Elemento puzzle-resultado-congratulations não encontrado');
             return;
         }
         
@@ -57,7 +57,7 @@ class ResultManager {
     
     // Limpar resultado
     clearResult() {
-        const resultadoElement = document.getElementById('puzzle-resultado');
+        const resultadoElement = document.getElementById('puzzle-resultado-congratulations');
         if (!resultadoElement) return;
         
         // Remover classe ativo
