@@ -434,9 +434,14 @@ function setupInteractiveObjects(objects) {
     }
     
     showDebugMessage('✅ Container encontrado, limpando...');
+    showDebugMessage('🔍 Container ID: ' + container.id);
+    showDebugMessage('🔍 Container children antes: ' + container.children.length);
+    
     while (container.firstChild) {
         container.removeChild(container.firstChild);
     }
+    
+    showDebugMessage('🔍 Container children depois: ' + container.children.length);
     
     showDebugMessage('🎯 Criando objetos interativos...');
     objects.forEach((obj, index) => {
@@ -447,6 +452,7 @@ function setupInteractiveObjects(objects) {
         createInteractivePlane(obj, container, index);
     });
     
+    showDebugMessage('🔍 Container children final: ' + container.children.length);
     showDebugMessage('✅ setupInteractiveObjects concluída');
 }
 
@@ -559,6 +565,18 @@ function createInteractivePlane(obj, container, index) {
     
     showDebugMessage(`✅ Plane criado para objeto ${obj.id}`);
     showDebugMessage(`✅ Peça criada para objeto ${obj.id} (sempre visível)`);
+    
+    // Verificar se as peças foram realmente criadas
+    setTimeout(() => {
+        const allPieces = document.querySelectorAll('.peca-plane');
+        showDebugMessage(`🔍 Verificação: ${allPieces.length} peças encontradas no DOM`);
+        
+        allPieces.forEach((piece, i) => {
+            const isVisible = piece.getAttribute('visible');
+            const position = piece.getAttribute('position');
+            showDebugMessage(`🔍 Peça ${i+1}: visible=${isVisible}, position=${position}`);
+        });
+    }, 1000);
 }
 
 // Inicializar webcam
@@ -682,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const scene = document.querySelector('a-scene');
     if (scene) {
         scene.addEventListener('loaded', function() {
-            console.log('🎮 Cena A-Frame carregada - inicializando sistema...');
+            showDebugMessage('🎮 Cena A-Frame carregada - inicializando sistema...');
             
             loadGameData();
             
@@ -693,8 +711,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             setupAutoReset();
             
-            console.log('✅ Sistema inicializado com sucesso!');
+            showDebugMessage('✅ Sistema inicializado com sucesso!');
         });
+    } else {
+        showDebugMessage('❌ Cena A-Frame não encontrada!');
     }
 });
 
