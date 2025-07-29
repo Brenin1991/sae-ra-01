@@ -392,6 +392,14 @@ async function loadGameData() {
         gameData = await response.json();
         showDebugMessage('✅ gameData carregado');
         
+        // Verificar se os caminhos estão corretos
+        if (gameData && gameData.fase1 && gameData.fase1.objetos) {
+            showDebugMessage('🔍 Verificando caminhos dos objetos:');
+            gameData.fase1.objetos.forEach((obj, index) => {
+                showDebugMessage(`  Objeto ${index + 1}: ${obj.id} - ${obj.imagem} / ${obj.peca}`);
+            });
+        }
+        
         showDebugMessage('🎯 Carregando fase: ' + currentPhase);
         await loadPhase(currentPhase);
         
@@ -399,6 +407,19 @@ async function loadGameData() {
         showDebugMessage('❌ Erro ao carregar dados: ' + error.message);
         showDebugMessage('🔍 URL tentada: assets/data/data.json');
         showDebugMessage('🔍 URL completa: ' + window.location.href + 'assets/data/data.json');
+        
+        // Tentar URLs alternativas
+        showDebugMessage('🔄 Tentando URLs alternativas...');
+        try {
+            const altResponse = await fetch('/assets/data/data.json');
+            if (altResponse.ok) {
+                showDebugMessage('✅ data.json encontrado com caminho alternativo');
+                gameData = await altResponse.json();
+                await loadPhase(currentPhase);
+            }
+        } catch (altError) {
+            showDebugMessage('❌ URL alternativa também falhou');
+        }
     }
 }
 
@@ -514,6 +535,12 @@ function getObjectPositionFromModel(objectId) {
 // Função para criar plane interativo
 function createInteractivePlane(obj, container, index) {
     showDebugMessage('🎯 createInteractivePlane: ' + obj.id + ' (index: ' + index + ')');
+    
+    // Verificar se há caracteres especiais nos nomes
+    const hasSpecialChars = /[áàâãéèêíìîóòôõúùûç]/i.test(obj.id);
+    if (hasSpecialChars) {
+        showDebugMessage('⚠️ ATENÇÃO: ID contém caracteres especiais: ' + obj.id);
+    }
     const plane = document.createElement('a-plane');
     
     let position = getObjectPositionFromModel(obj.id);
@@ -566,6 +593,9 @@ function createInteractivePlane(obj, container, index) {
     
     showDebugMessage('🎯 Criando peça para: ' + obj.id);
     showDebugMessage('🎯 Posição da peça: ' + JSON.stringify(pecaPosition));
+    showDebugMessage('🔍 Caminhos das imagens:');
+    showDebugMessage('  - Objeto: ' + obj.imagem);
+    showDebugMessage('  - Peça: ' + obj.peca);
     
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
@@ -587,8 +617,20 @@ function createInteractivePlane(obj, container, index) {
     };
     pecaImage.onerror = () => {
         showDebugMessage('❌ ERRO: Imagem da peça não encontrada: ' + obj.peca);
+        showDebugMessage('🔍 Tentando URL completa: ' + window.location.origin + '/' + obj.peca);
     };
     pecaImage.src = obj.peca;
+    
+    // Verificar também a imagem do objeto
+    const objImage = new Image();
+    objImage.onload = () => {
+        showDebugMessage('✅ Imagem do objeto carregada: ' + obj.imagem);
+    };
+    objImage.onerror = () => {
+        showDebugMessage('❌ ERRO: Imagem do objeto não encontrada: ' + obj.imagem);
+        showDebugMessage('🔍 Tentando URL completa: ' + window.location.origin + '/' + obj.imagem);
+    };
+    objImage.src = obj.imagem;
     
     pecaPlane.setAttribute('material', {
         src: obj.peca,
