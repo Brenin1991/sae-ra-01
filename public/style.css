@@ -210,6 +210,7 @@ input, textarea {
     /* Fallback para dispositivos que não suportam vh/vw */
     height: 100%;
     width: 100%;
+    pointer-events: none; /* Permitir que eventos passem para elementos abaixo */
 }
 
 .camera-icon {
@@ -219,6 +220,7 @@ input, textarea {
     z-index: 2100;
     cursor: pointer;
     transition: transform 0.2s ease;
+    pointer-events: auto; /* Habilitar eventos de toque */
 }
 
 #ui .camera-icon:hover {
@@ -247,6 +249,7 @@ input, textarea {
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.2);
+    pointer-events: auto; /* Habilitar eventos de toque */
 }
 
 .photo-counter:hover {
@@ -418,6 +421,8 @@ input, textarea {
 a-scene {
     background: transparent !important;
     pointer-events: auto;
+    z-index: 100;
+    position: relative;
 }
 
 .mode-button {

@@ -139,6 +139,18 @@ AFRAME.registerComponent('auto-detect', {
         const intersections = this.raycaster.intersectObjects(threeObjects, true);
         const previouslyIntersected = new Set();
         
+        // Debug para mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         window.innerWidth <= 768;
+        
+        if (isMobile && intersections.length > 0) {
+            console.log('🎯 Mobile: Interseção detectada!', {
+                intersections: intersections.length,
+                firstObject: intersections[0].object,
+                distance: intersections[0].distance
+            });
+        }
+        
 
         
         if (intersections.length > 0) {
@@ -408,6 +420,14 @@ function createInteractivePlane(obj, container, index) {
 
     
     container.appendChild(plane);
+    
+    // Debug para verificar se as peças estão sendo criadas
+    console.log('🎯 Peça criada:', {
+        id: plane.id,
+        position: plane.getAttribute('position'),
+        classList: Array.from(plane.classList),
+        object3D: plane.object3D ? 'disponível' : 'não disponível'
+    });
     
     const pecaPlane = document.createElement('a-plane');
     const pecaPosition = {
