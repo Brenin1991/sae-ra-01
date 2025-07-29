@@ -88,6 +88,51 @@ let isARMode = true;
 let currentStream = null;
 let photographedPieces = new Set();
 
+// Função para mostrar mensagens de debug na tela
+function showDebugMessage(message) {
+    console.log(message);
+    
+    // Criar ou atualizar elemento de debug na tela
+    let debugElement = document.getElementById('debug-messages');
+    if (!debugElement) {
+        debugElement = document.createElement('div');
+        debugElement.id = 'debug-messages';
+        debugElement.style.cssText = `
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 10000;
+            max-height: 200px;
+            overflow-y: auto;
+        `;
+        document.body.appendChild(debugElement);
+    }
+    
+    // Adicionar nova mensagem
+    const messageElement = document.createElement('div');
+    messageElement.textContent = new Date().toLocaleTimeString() + ': ' + message;
+    debugElement.appendChild(messageElement);
+    
+    // Manter apenas as últimas 10 mensagens
+    while (debugElement.children.length > 10) {
+        debugElement.removeChild(debugElement.firstChild);
+    }
+    
+    // Auto-remover após 5 segundos
+    setTimeout(() => {
+        if (messageElement.parentNode) {
+            messageElement.parentNode.removeChild(messageElement);
+        }
+    }, 5000);
+}
+
 // Componente billboard para orientar objetos sempre para a câmera
 AFRAME.registerComponent('billboard', {
     init: function() {
@@ -313,33 +358,46 @@ function clearAllPecas() {
 
 // Função para carregar dados do JSON
 async function loadGameData() {
+    showDebugMessage('🎯 loadGameData iniciando...');
     try {
+        showDebugMessage('📡 Fazendo fetch do data.json...');
         const response = await fetch('assets/data/data.json');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
+        showDebugMessage('✅ data.json carregado, fazendo parse...');
         gameData = await response.json();
+        showDebugMessage('✅ gameData carregado');
         
+        showDebugMessage('🎯 Carregando fase: ' + currentPhase);
         await loadPhase(currentPhase);
         
     } catch (error) {
-        console.error('❌ Erro ao carregar dados:', error);
+        showDebugMessage('❌ Erro ao carregar dados: ' + error.message);
     }
 }
 
 // Função para carregar uma fase
 async function loadPhase(phaseName) {
+    showDebugMessage('🎯 loadPhase chamada: ' + phaseName);
+    
     if (!gameData || !gameData[phaseName]) {
-        console.error('❌ Fase não encontrada:', phaseName);
+        showDebugMessage('❌ Fase não encontrada: ' + phaseName);
         return;
     }
     
     const phaseData = gameData[phaseName];
+    showDebugMessage('✅ Dados da fase carregados');
     
+    showDebugMessage('🎯 Carregando modelo...');
     await loadModel(phaseData.model);
+    showDebugMessage('✅ Modelo carregado');
+    
+    showDebugMessage('🎯 Configurando objetos interativos...');
     setupInteractiveObjects(phaseData.objetos);
+    showDebugMessage('✅ Fase carregada completamente');
 }
 
 // Função para carregar modelo GLB
@@ -367,16 +425,20 @@ function loadModel(modelPath) {
 
 // Função para configurar objetos interativos
 function setupInteractiveObjects(objects) {
+    showDebugMessage('🎯 setupInteractiveObjects chamada: ' + objects.length + ' objetos');
+    
     const container = document.getElementById('interactive-objects');
     if (!container) {
-        console.error('❌ Container de objetos não encontrado');
+        showDebugMessage('❌ Container de objetos não encontrado');
         return;
     }
     
+    showDebugMessage('✅ Container encontrado, limpando...');
     while (container.firstChild) {
         container.removeChild(container.firstChild);
     }
     
+    showDebugMessage('🎯 Criando objetos interativos...');
     objects.forEach((obj, index) => {
         if (loadedModel) {
             hideObjectInModel(obj.id);
@@ -384,6 +446,8 @@ function setupInteractiveObjects(objects) {
         
         createInteractivePlane(obj, container, index);
     });
+    
+    showDebugMessage('✅ setupInteractiveObjects concluída');
 }
 
 // Função para esconder objeto no modelo 3D
@@ -420,6 +484,7 @@ function getObjectPositionFromModel(objectId) {
 
 // Função para criar plane interativo
 function createInteractivePlane(obj, container, index) {
+    showDebugMessage('🎯 createInteractivePlane: ' + obj.id + ' (index: ' + index + ')');
     const plane = document.createElement('a-plane');
     
     let position = getObjectPositionFromModel(obj.id);
@@ -492,8 +557,8 @@ function createInteractivePlane(obj, container, index) {
     container.appendChild(pecaPlane);
     plane.pecaPlane = pecaPlane;
     
-    console.log(`✅ Plane criado para objeto ${obj.id} em`, position);
-    console.log(`✅ Peça criada para objeto ${obj.id} (inicialmente invisível)`);
+    showDebugMessage(`✅ Plane criado para objeto ${obj.id}`);
+    showDebugMessage(`✅ Peça criada para objeto ${obj.id} (sempre visível)`);
 }
 
 // Inicializar webcam
