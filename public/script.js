@@ -122,10 +122,6 @@ AFRAME.registerComponent('auto-detect', {
         const interactiveObjects = document.querySelectorAll('.clickable');
         if (interactiveObjects.length === 0) return;
         
-        // Detectar se é dispositivo móvel
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                         window.innerWidth <= 768;
-        
         const cameraObj = this.camera.object3D;
         const direction = new THREE.Vector3(0, 0, -1);
         direction.applyQuaternion(cameraObj.quaternion);
@@ -140,65 +136,8 @@ AFRAME.registerComponent('auto-detect', {
             }
         });
         
-        // Para dispositivos móveis, usar uma abordagem mais simples
-        
-        if (isMobile) {
-            // Em mobile, verificar se alguma peça está visível e próxima da câmera
-            interactiveObjects.forEach(el => {
-                if (el.object3D && el.object3D.visible) {
-                    const piecePosition = el.object3D.position;
-                    const distance = cameraObj.position.distanceTo(piecePosition);
-                    
-                    // Se a peça está a menos de 10 unidades da câmera, considerar como intersectada
-                    if (distance < 10) {
-                        const component = el.components['interactive-object'];
-                        if (component) {
-                            const objectId = component.data.objectId;
-                            if (!this.lastTriggered[objectId] || 
-                                time - this.lastTriggered[objectId] > this.cooldown) {
-                                
-                                this.lastTriggered[objectId] = time;
-                                
-                                const showFunction = el.showPecaOnIntersection;
-                                if (showFunction) {
-                                    const pecaPlane = el.pecaPlane;
-                                    if (pecaPlane && !pecaPlane.getAttribute('visible')) {
-                                        showFunction();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            return;
-        }
-        
-        // Debug do raycast
-        if (isMobile && time % 2000 < 100) { // Log a cada 2 segundos em mobile
-            console.log('🎯 Raycast Debug:', {
-                cameraPosition: cameraObj.position,
-                direction: direction,
-                interactiveObjects: interactiveObjects.length,
-                threeObjects: threeObjects.length,
-                raycaster: this.raycaster ? 'disponível' : 'não disponível'
-            });
-        }
-        
         const intersections = this.raycaster.intersectObjects(threeObjects, true);
         const previouslyIntersected = new Set();
-        
-        // Debug das interseções
-        if (isMobile && time % 2000 < 100) { // Log a cada 2 segundos em mobile
-            console.log('🎯 Interseções encontradas:', intersections.length);
-            if (intersections.length > 0) {
-                console.log('🎯 Primeira interseção:', {
-                    object: intersections[0].object,
-                    distance: intersections[0].distance,
-                    point: intersections[0].point
-                });
-            }
-        }
         
         if (intersections.length > 0) {
             let targetObject = intersections[0].object;
@@ -464,17 +403,7 @@ function createInteractivePlane(obj, container, index) {
     plane.setAttribute('cursor-listener', '');
     plane.classList.add('clickable');
     
-    // Debug da criação de peças
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                     window.innerWidth <= 768;
-    if (isMobile) {
-        console.log('🎯 Peça criada:', {
-            id: plane.id,
-            classList: Array.from(plane.classList),
-            position: plane.getAttribute('position'),
-            object3D: plane.object3D ? 'disponível' : 'não disponível'
-        });
-    }
+
     
     container.appendChild(plane);
     
