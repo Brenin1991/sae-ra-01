@@ -436,8 +436,12 @@ async function loadPhase(phaseName) {
     showDebugMessage('✅ Dados da fase carregados');
     
     showDebugMessage('🎯 Carregando modelo...');
-    await loadModel(phaseData.model);
-    showDebugMessage('✅ Modelo carregado');
+    try {
+        await loadModel(phaseData.model);
+        showDebugMessage('✅ Modelo carregado');
+    } catch (error) {
+        showDebugMessage('⚠️ Modelo falhou, continuando sem ele: ' + error);
+    }
     
     showDebugMessage('🎯 Configurando objetos interativos...');
     setupInteractiveObjects(phaseData.objetos);
@@ -447,21 +451,34 @@ async function loadPhase(phaseName) {
 // Função para carregar modelo GLB
 function loadModel(modelPath) {
     return new Promise((resolve, reject) => {
+        showDebugMessage('🎯 loadModel iniciando: ' + modelPath);
+        
         const modelEntity = document.getElementById('main-model');
         if (!modelEntity) {
+            showDebugMessage('❌ Elemento do modelo não encontrado');
             reject('Elemento do modelo não encontrado');
             return;
         }
         
+        showDebugMessage('✅ Elemento do modelo encontrado, carregando...');
         modelEntity.setAttribute('gltf-model', modelPath);
         
+        // Timeout para evitar travamento
+        const timeout = setTimeout(() => {
+            showDebugMessage('⚠️ Timeout ao carregar modelo - continuando mesmo assim');
+            resolve(null);
+        }, 10000);
+        
         modelEntity.addEventListener('model-loaded', function() {
+            clearTimeout(timeout);
             loadedModel = modelEntity.getObject3D('mesh');
+            showDebugMessage('✅ Modelo carregado com sucesso');
             resolve(loadedModel);
         });
         
         modelEntity.addEventListener('model-error', function(error) {
-            console.error('❌ Erro ao carregar modelo:', error);
+            clearTimeout(timeout);
+            showDebugMessage('❌ Erro ao carregar modelo: ' + error);
             reject(error);
         });
     });
@@ -488,6 +505,8 @@ function setupInteractiveObjects(objects) {
     showDebugMessage('🔍 Container children depois: ' + container.children.length);
     
     showDebugMessage('🎯 Criando objetos interativos...');
+    showDebugMessage('🔍 Modelo carregado: ' + (loadedModel ? 'SIM' : 'NÃO'));
+    
     objects.forEach((obj, index) => {
         if (loadedModel) {
             hideObjectInModel(obj.id);
@@ -584,6 +603,7 @@ function createInteractivePlane(obj, container, index) {
     
     container.appendChild(plane);
     
+    // CRIAR PEÇA VERDE PRIMEIRO (mais importante)
     const pecaPlane = document.createElement('a-plane');
     const pecaPosition = {
         x: position.x,
@@ -591,35 +611,26 @@ function createInteractivePlane(obj, container, index) {
         z: position.z
     };
     
-    showDebugMessage('🎯 Criando peça para: ' + obj.id);
+    showDebugMessage('🎯 Criando peça VERDE para: ' + obj.id);
     showDebugMessage('🎯 Posição da peça: ' + JSON.stringify(pecaPosition));
-    showDebugMessage('🔍 Caminhos das imagens:');
-    showDebugMessage('  - Objeto: ' + obj.imagem);
-    showDebugMessage('  - Peça: ' + obj.peca);
     
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
     pecaPlane.setAttribute('visible', 'true'); // SEMPRE VISÍVEL PARA TESTE
-    
     pecaPlane.setAttribute('billboard', '');
     
     const timestamp = Date.now() + Math.random();
     pecaPlane.id = 'peca-' + obj.id + '-' + timestamp;
     pecaPlane.classList.add('peca-plane');
     
-    showDebugMessage('🎯 Peça criada com ID: ' + pecaPlane.id);
+    showDebugMessage('🎯 Peça VERDE criada com ID: ' + pecaPlane.id);
     
-    // Verificar se a imagem da peça existe
-    const pecaImage = new Image();
-    pecaImage.onload = () => {
-        showDebugMessage('✅ Imagem da peça carregada: ' + obj.peca);
-    };
-    pecaImage.onerror = () => {
-        showDebugMessage('❌ ERRO: Imagem da peça não encontrada: ' + obj.peca);
-        showDebugMessage('🔍 Tentando URL completa: ' + window.location.origin + '/' + obj.peca);
-    };
-    pecaImage.src = obj.peca;
+    // ADICIONAR PEÇA VERDE IMEDIATAMENTE
+    container.appendChild(pecaPlane);
+    showDebugMessage('🎯 Peça VERDE adicionada ao container IMEDIATAMENTE');
+    
+
     
     // Verificar também a imagem do objeto
     const objImage = new Image();
@@ -632,6 +643,7 @@ function createInteractivePlane(obj, container, index) {
     };
     objImage.src = obj.imagem;
     
+    // VOLTAR A USAR IMAGENS REAIS
     pecaPlane.setAttribute('material', {
         src: obj.peca,
         transparent: true,
@@ -640,24 +652,30 @@ function createInteractivePlane(obj, container, index) {
         emissiveIntensity: 0.4
     });
     
-    showDebugMessage('🎯 Adicionando peça ao container...');
-    container.appendChild(pecaPlane);
-    showDebugMessage('🎯 Peça adicionada ao container');
+    showDebugMessage('🎯 Usando imagem real: ' + obj.peca);
     
+    // Peça já foi adicionada acima
     plane.pecaPlane = pecaPlane;
     showDebugMessage('🎯 Referência da peça salva no plane');
+    
+    // Aguardar um frame para garantir que o A-Frame processou
+    requestAnimationFrame(() => {
+        const isVisible = pecaPlane.getAttribute('visible');
+        const position = pecaPlane.getAttribute('position');
+        showDebugMessage('🎯 Peça após 1 frame - visible: ' + isVisible + ', position: ' + position);
+    });
     
     showDebugMessage(`✅ Plane criado para objeto ${obj.id}`);
     showDebugMessage(`✅ Peça criada para objeto ${obj.id} (sempre visível)`);
     
     // Verificação imediata
     const allPieces = document.querySelectorAll('.peca-plane');
-    showDebugMessage(`🔍 Verificação IMEDIATA: ${allPieces.length} peças encontradas no DOM`);
+    showDebugMessage(`🔍 Verificação IMEDIATA: ${allPieces.length} peças encontradas`);
     
     // Verificar se as peças foram realmente criadas
     setTimeout(() => {
         const allPieces = document.querySelectorAll('.peca-plane');
-        showDebugMessage(`🔍 Verificação: ${allPieces.length} peças encontradas no DOM`);
+        showDebugMessage(`🔍 Verificação 1s: ${allPieces.length} peças encontradas`);
         
         allPieces.forEach((piece, i) => {
             const isVisible = piece.getAttribute('visible');
@@ -665,6 +683,18 @@ function createInteractivePlane(obj, container, index) {
             showDebugMessage(`🔍 Peça ${i+1}: visible=${isVisible}, position=${position}`);
         });
     }, 1000);
+    
+    // Verificação adicional após 3 segundos
+    setTimeout(() => {
+        const allPieces = document.querySelectorAll('.peca-plane');
+        showDebugMessage(`🔍 Verificação 3s: ${allPieces.length} peças encontradas`);
+        
+        if (allPieces.length === 0) {
+            showDebugMessage('⚠️ ATENÇÃO: Nenhuma peça encontrada após 3s - problema geral');
+        } else {
+            showDebugMessage('✅ SUCESSO: Peças com imagens funcionando!');
+        }
+    }, 3000);
 }
 
 // Inicializar webcam
@@ -796,20 +826,29 @@ document.addEventListener('DOMContentLoaded', function() {
             showDebugMessage('✅ A-Frame carregado corretamente');
         }
         
-        scene.addEventListener('loaded', function() {
-            showDebugMessage('🎮 Cena A-Frame carregada - inicializando sistema...');
-            
+        // Verificar se a cena já está carregada
+        if (scene.hasLoaded) {
+            showDebugMessage('🎮 Cena já carregada - inicializando imediatamente...');
             loadGameData();
-            
-            const video = document.getElementById('webcam');
-            if (video && !video.srcObject && isARMode) {
-                initWebcam();
-            }
-            
             setupAutoReset();
-            
-            showDebugMessage('✅ Sistema inicializado com sucesso!');
-        });
+            showDebugMessage('✅ Sistema inicializado imediatamente!');
+        } else {
+            showDebugMessage('⏳ Aguardando carregamento da cena...');
+            scene.addEventListener('loaded', function() {
+                showDebugMessage('🎮 Cena A-Frame carregada - inicializando sistema...');
+                
+                loadGameData();
+                
+                const video = document.getElementById('webcam');
+                if (video && !video.srcObject && isARMode) {
+                    initWebcam();
+                }
+                
+                setupAutoReset();
+                
+                showDebugMessage('✅ Sistema inicializado com sucesso!');
+            });
+        }
     } else {
         showDebugMessage('❌ Cena A-Frame não encontrada!');
     }
