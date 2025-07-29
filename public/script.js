@@ -139,6 +139,8 @@ AFRAME.registerComponent('auto-detect', {
         const intersections = this.raycaster.intersectObjects(threeObjects, true);
         const previouslyIntersected = new Set();
         
+
+        
         if (intersections.length > 0) {
             let targetObject = intersections[0].object;
             
@@ -647,6 +649,8 @@ function vibrateDevice() {
 function checkVisiblePieces() {
     const allPieces = document.querySelectorAll('.peca-plane');
     
+
+    
     const visiblePieces = Array.from(allPieces).filter(piece => {
         const isVisible = piece.getAttribute('visible') === 'true';
         const rect = piece.getBoundingClientRect();
@@ -655,6 +659,8 @@ function checkVisiblePieces() {
                           rect.bottom <= window.innerHeight && 
                           rect.right <= window.innerWidth;
         const notPhotographed = !isPiecePhotographed(piece);
+        
+
         
         return isVisible && isOnScreen && notPhotographed;
     });
@@ -668,7 +674,13 @@ function checkVisiblePieces() {
         return false;
     });
     
-    const finalVisiblePieces = aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces;
+    // Para mobile, usar apenas A-Frame, para desktop usar ambos
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     window.innerWidth <= 768;
+    
+    const finalVisiblePieces = isMobile ? aframeVisiblePieces : (aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces);
+    
+
     
     if (finalVisiblePieces.length > 0) {
         finalVisiblePieces.forEach(piece => {

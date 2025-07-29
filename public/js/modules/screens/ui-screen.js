@@ -199,78 +199,39 @@ class UIScreen extends BaseScreen {
     }
     
     checkVisiblePieces() {
-        // Usar a função global do script.js
+        // Usar APENAS a função global do script.js
         if (window.checkVisiblePieces) {
             window.checkVisiblePieces();
         } else {
-            // Fallback local
-            const allPieces = document.querySelectorAll('.peca-plane');
-            const visiblePieces = Array.from(allPieces).filter(piece => {
-                const isVisible = piece.getAttribute('visible') === 'true';
-                const notPhotographed = !this.isPiecePhotographed(piece);
-                return isVisible && notPhotographed;
-            });
-            
-            if (visiblePieces.length > 0) {
-                visiblePieces.forEach(piece => {
-                    this.markPieceAsPhotographed(piece);
-                });
-                
-                this.showPhotoFeedback(true, visiblePieces.length);
-            } else {
-                this.showPhotoFeedback(false, 0);
-            }
+            console.error('❌ Função checkVisiblePieces não encontrada no script.js');
         }
     }
     
     markPieceAsPhotographed(piece) {
-        // Usar a função global do script.js
+        // Usar APENAS a função global do script.js
         if (window.markPieceAsPhotographed) {
             window.markPieceAsPhotographed(piece);
         } else {
-            // Fallback local
-            const pieceId = piece.id;
-            this.photographedPieces.add(pieceId);
-            
-            piece.classList.add('photographed');
-            piece.setAttribute('material', {
-                ...piece.getAttribute('material'),
-                opacity: 0.3,
-                transparent: true
-            });
-            
-            this.updatePhotoCounter();
-            
-            // Verificar se todas as peças foram fotografadas
-            if (this.photographedPieces.size >= document.querySelectorAll('.peca-plane').length) {
-                this.startPuzzle();
-            }
+            console.error('❌ Função markPieceAsPhotographed não encontrada no script.js');
         }
     }
     
     isPiecePhotographed(piece) {
-        // Usar a função global do script.js
+        // Usar APENAS a função global do script.js
         if (window.isPiecePhotographed) {
             return window.isPiecePhotographed(piece);
         } else {
-            // Fallback local
-            return this.photographedPieces.has(piece.id);
+            console.error('❌ Função isPiecePhotographed não encontrada no script.js');
+            return false;
         }
     }
     
     updatePhotoCounter() {
-        // Usar a função global do script.js
+        // Usar APENAS a função global do script.js
         if (window.updatePhotoCounter) {
             window.updatePhotoCounter();
         } else {
-            // Fallback local
-            if (this.photoCount && this.totalPieces) {
-                const totalPieces = document.querySelectorAll('.peca-plane').length;
-                const photographedCount = this.photographedPieces.size;
-                
-                this.photoCount.textContent = photographedCount;
-                this.totalPieces.textContent = totalPieces;
-            }
+            console.error('❌ Função updatePhotoCounter não encontrada no script.js');
         }
     }
     
