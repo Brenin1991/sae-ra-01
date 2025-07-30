@@ -141,6 +141,9 @@ class PuzzleGameManager {
         
         setTimeout(() => {
             piece.style.display = 'none';
+            // Garantir que volta ao estado inicial
+            piece.style.opacity = '1';
+            piece.style.transform = 'scale(1)';
         }, 300);
         
         // Incrementar contador
@@ -249,6 +252,31 @@ class PuzzleGameManager {
         // Recriar elementos após animação
         setTimeout(() => {
             this.createPuzzleElements();
+            
+            // Garantir que novas peças comecem invisíveis
+            setTimeout(() => {
+                const pieces = this.elementManager.getPieces();
+                pieces.forEach((piece, index) => {
+                    piece.style.opacity = '0';
+                    piece.style.transform = 'scale(0.8)';
+                    
+                    setTimeout(() => {
+                        piece.style.opacity = '1';
+                        piece.style.transform = 'scale(1)';
+                    }, 100 + (index * 50));
+                });
+                
+                const targets = this.elementManager.getTargets();
+                targets.forEach((target, index) => {
+                    target.style.opacity = '0';
+                    target.style.transform = 'scale(0.8)';
+                    
+                    setTimeout(() => {
+                        target.style.opacity = '1';
+                        target.style.transform = 'scale(1)';
+                    }, 200 + (index * 50));
+                });
+            }, 100);
         }, 500);
     }
     

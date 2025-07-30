@@ -47,6 +47,9 @@ class SelfieScreen extends BaseScreen {
         // Configurar ícone da câmera para captura da tela
         const cameraIcon = this.element.querySelector('#camera-icon-selfie');
         if (cameraIcon) {
+            // Adicionar classe para ignorar na captura
+            cameraIcon.classList.add('capture-ignore');
+            
             cameraIcon.addEventListener('click', () => {
                 this.captureSelfieScreen();
             });
@@ -354,6 +357,14 @@ class SelfieScreen extends BaseScreen {
         try {
             console.log('📸 Capturando tela de selfie...');
             
+            // Esconder temporariamente o botão da câmera
+            const cameraIcon = this.element.querySelector('#camera-icon-selfie');
+            let originalDisplay = '';
+            if (cameraIcon) {
+                originalDisplay = cameraIcon.style.display;
+                cameraIcon.style.display = 'none';
+            }
+            
             // Mostrar feedback de captura
             this.showCaptureFeedback();
             
@@ -385,7 +396,10 @@ class SelfieScreen extends BaseScreen {
                 removeContainer: true,
                 ignoreElements: (element) => {
                     // Ignorar elementos que podem causar problemas
-                    return element.classList.contains('capture-ignore');
+                    return element.classList.contains('capture-ignore') || 
+                           element.id === 'camera-icon-selfie' || // Ignorar botão da câmera
+                           element.classList.contains('camera-icon-selfie') || // Ignorar por classe também
+                           element.closest('#camera-icon-selfie') !== null; // Ignorar se for filho do botão
                 }
             };
             
@@ -398,11 +412,21 @@ class SelfieScreen extends BaseScreen {
             // Salvar a imagem
             this.saveCapturedImage(imageData);
             
+            // Restaurar o botão da câmera
+            if (cameraIcon) {
+                cameraIcon.style.display = originalDisplay;
+            }
+            
             console.log('✅ Tela de selfie capturada com sucesso');
             
         } catch (error) {
             console.error('❌ Erro ao capturar tela de selfie:', error);
             this.showErrorFeedback('Erro ao capturar imagem');
+            
+            // Restaurar o botão da câmera mesmo em caso de erro
+            if (cameraIcon) {
+                cameraIcon.style.display = originalDisplay;
+            }
         }
     }
     
