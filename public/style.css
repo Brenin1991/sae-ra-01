@@ -714,10 +714,12 @@ a-scene {
 }
 
 .puzzle-piece:hover {
+    transform: scale(1.05);
 }
 
 .puzzle-piece:active {
     cursor: grabbing;
+    transform: scale(1.1);
 }
 
 .puzzle-piece img {
@@ -733,6 +735,7 @@ a-scene {
 }
 
 .puzzle-target.highlight {
+    transform: scale(1.05);
 }
 
 .puzzle-target.correct {
@@ -745,7 +748,9 @@ a-scene {
 }
 
 @keyframes correctPlacement {
-
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .puzzle-controls {

@@ -88,10 +88,6 @@ class PuzzleGameManager {
         // Marcar target como correto
         this.elementManager.markTargetAsCorrect(piece.dataset.pieceId);
         
-        // Adicionar classe de sucesso ao target
-        target.classList.add('correct');
-        target.classList.add('piece-placed');
-        
         // Mostrar a imagem da peça no target
         const puzzleData = this.dataManager.getPuzzleData();
         const pieceData = puzzleData.find(p => p.id === piece.dataset.pieceId);
@@ -99,67 +95,42 @@ class PuzzleGameManager {
             // Limpar conteúdo anterior do target
             target.innerHTML = '';
             
-            // Criar container para a peça
-            const pieceContainer = document.createElement('div');
-            pieceContainer.className = 'placed-piece';
-            pieceContainer.style.cssText = `
-                position: relative;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                opacity: 0;
-                transition: opacity 0.6s ease-out;
-            `;
-            
             // Criar imagem da peça
             const pieceImg = document.createElement('img');
             pieceImg.src = pieceData.peca;
             pieceImg.alt = `Peça ${pieceData.id} montada`;
             pieceImg.style.cssText = `
-                max-width: 100%;
-                max-height: 100%;
-                object-fit: contain;
-                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+                opacity: 0;
+                transition: opacity 0.5s ease-in-out;
             `;
             
-            pieceContainer.appendChild(pieceImg);
-            target.appendChild(pieceContainer);
+            // Aplicar tamanho original da peça
+            pieceImg.onload = () => {
+                const originalWidth = pieceImg.naturalWidth;
+                const originalHeight = pieceImg.naturalHeight;
+                
+                // Aplicar dimensões originais
+                pieceImg.style.width = `${originalWidth}px`;
+                pieceImg.style.height = `${originalHeight}px`;
+            };
             
-            // Animar entrada da imagem (apenas fade, sem scale)
+            target.appendChild(pieceImg);
+            
+            // Animar entrada da imagem
             setTimeout(() => {
-                pieceContainer.style.opacity = '1';
+                pieceImg.style.opacity = '1';
             }, 100);
-            
-            // Adicionar efeito de brilho (sem mudar escala)
-            setTimeout(() => {
-                pieceContainer.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3)) brightness(1.1)';
-                setTimeout(() => {
-                    pieceContainer.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))';
-                }, 300);
-            }, 600);
         }
         
-        // Animar saída da peça original (apenas fade, sem scale)
-        piece.style.opacity = '0';
-        piece.style.transition = 'opacity 0.3s ease-out';
-        
-        setTimeout(() => {
-            piece.style.display = 'none';
-        }, 300);
+        // Remover peça da área de peças
+        piece.style.display = 'none';
         
         // Incrementar contador
         this.completedPieces++;
         
-        // Atualizar progresso visual
-        this.updateProgressVisual();
-        
         // Verificar se o quebra-cabeça foi completado
         if (this.completedPieces >= this.dataManager.getTotalPieces()) {
-            setTimeout(() => {
-                this.completePuzzle();
-            }, 800);
+            this.completePuzzle();
         }
         
         // Feedback visual e sonoro
@@ -247,64 +218,6 @@ class PuzzleGameManager {
     isPuzzleActive() {
         const puzzleScreen = document.getElementById('puzzle-screen');
         return puzzleScreen && puzzleScreen.style.display === 'flex';
-    }
-    
-    // Atualizar progresso visual
-    updateProgressVisual() {
-        const totalPieces = this.dataManager.getTotalPieces();
-        const progressPercentage = (this.completedPieces / totalPieces) * 100;
-        
-        // Atualizar barra de progresso se existir
-        const progressBar = document.querySelector('.puzzle-progress-bar');
-        if (progressBar) {
-            progressBar.style.width = `${progressPercentage}%`;
-        }
-        
-        // Atualizar contador se existir
-        const progressText = document.querySelector('.puzzle-progress-text');
-        if (progressText) {
-            progressText.textContent = `${this.completedPieces}/${totalPieces}`;
-        }
-        
-        // Efeito de confete para peças importantes
-        if (this.completedPieces === Math.floor(totalPieces / 2)) {
-            this.showHalfwayConfetti();
-        }
-    }
-    
-    // Mostrar confete na metade do progresso
-    showHalfwayConfetti() {
-        // Criar confete simples
-        for (let i = 0; i < 20; i++) {
-            setTimeout(() => {
-                this.createConfetti();
-            }, i * 50);
-        }
-    }
-    
-    // Criar confete
-    createConfetti() {
-        const confetti = document.createElement('div');
-        confetti.style.cssText = `
-            position: fixed;
-            width: 8px;
-            height: 8px;
-            background: ${['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'][Math.floor(Math.random() * 5)]};
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 10000;
-            left: ${Math.random() * window.innerWidth}px;
-            top: -10px;
-            animation: confettiFall 2s ease-in forwards;
-        `;
-        
-        document.body.appendChild(confetti);
-        
-        setTimeout(() => {
-            if (confetti.parentNode) {
-                confetti.parentNode.removeChild(confetti);
-            }
-        }, 2000);
     }
     
     // Simular conclusão do puzzle
