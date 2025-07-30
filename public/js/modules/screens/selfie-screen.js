@@ -14,6 +14,7 @@ class SelfieScreen extends BaseScreen {
         this.selfieStream = null;
         this.selfieImage = null;
         this.isPhotoTaken = false;
+        this.isIOS = this.detectIOS();
     }
     
     onInit() {
@@ -25,6 +26,7 @@ class SelfieScreen extends BaseScreen {
         // Detectar se é mobile
         this.isMobile = this.detectMobile();
         console.log('📱 Dispositivo móvel:', this.isMobile);
+        console.log('🍎 iOS detectado:', this.isIOS);
     }
     
     setupSelfieElements() {
@@ -281,19 +283,88 @@ class SelfieScreen extends BaseScreen {
         try {
             console.log('💾 Salvando selfie...');
             
-            // Criar link para download
-            const link = document.createElement('a');
-            link.download = `selfie-${Date.now()}.jpg`;
-            link.href = this.selfieImage.src;
-            link.click();
-            
-            console.log('✅ Selfie salva com sucesso');
-            
-            // Mostrar feedback
-            this.showSaveFeedback();
+            // Usar método otimizado para iOS
+            this.saveImageOptimized(this.selfieImage.src, `selfie-${Date.now()}.jpg`);
             
         } catch (error) {
             console.error('❌ Erro ao salvar selfie:', error);
+        }
+    }
+    
+    // Método otimizado para salvar imagens (compatível com iOS)
+    saveImageOptimized(dataURL, filename) {
+        try {
+            // Converter data URL para blob
+            const byteString = atob(dataURL.split(',')[1]);
+            const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            
+            const blob = new Blob([ab], { type: mimeString });
+            
+            // Método 1: Usar FileSaver.js se disponível
+            if (typeof saveAs !== 'undefined') {
+                saveAs(blob, filename);
+                console.log('✅ Imagem salva usando FileSaver.js');
+                this.showSaveFeedback();
+                return;
+            }
+            
+            // Método 2: Usar URL.createObjectURL (mais compatível com iOS)
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            // Para iOS, usar target="_blank"
+            if (this.isIOS) {
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+            }
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Limpar URL após um tempo
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 1000);
+            
+            console.log('✅ Imagem salva usando URL.createObjectURL');
+            this.showSaveFeedback();
+            
+        } catch (error) {
+            console.error('❌ Erro no método otimizado:', error);
+            
+            // Fallback: método original
+            this.saveImageFallback(dataURL, filename);
+        }
+    }
+    
+    // Fallback para navegadores mais antigos
+    saveImageFallback(dataURL, filename) {
+        try {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataURL;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log('✅ Imagem salva usando método fallback');
+            this.showSaveFeedback();
+            
+        } catch (error) {
+            console.error('❌ Erro no fallback:', error);
+            this.showErrorFeedback('Erro ao salvar imagem');
         }
     }
     
@@ -409,8 +480,8 @@ class SelfieScreen extends BaseScreen {
             // Converter para imagem com qualidade otimizada
             const imageData = canvas.toDataURL('image/jpeg', 0.9);
             
-            // Salvar a imagem
-            this.saveCapturedImage(imageData);
+            // Salvar a imagem usando método otimizado
+            this.saveCapturedImageOptimized(imageData);
             
             // Restaurar o botão da câmera
             if (cameraIcon) {
@@ -430,23 +501,22 @@ class SelfieScreen extends BaseScreen {
         }
     }
     
-    saveCapturedImage(imageData) {
+    saveCapturedImageOptimized(imageData) {
         try {
-            // Criar link para download
-            const link = document.createElement('a');
-            link.download = `selfie-certificado-${Date.now()}.jpg`;
-            link.href = imageData;
-            link.click();
+            // Usar método otimizado para salvar
+            this.saveImageOptimized(imageData, `selfie-certificado-${Date.now()}.jpg`);
             
             console.log('💾 Imagem capturada salva com sucesso');
-            
-            // Mostrar feedback de sucesso
-            this.showSaveSuccessFeedback();
             
         } catch (error) {
             console.error('❌ Erro ao salvar imagem capturada:', error);
             this.showErrorFeedback('Erro ao salvar imagem');
         }
+    }
+    
+    // Método antigo (mantido para compatibilidade)
+    saveCapturedImage(imageData) {
+        this.saveCapturedImageOptimized(imageData);
     }
     
     showCaptureFeedback() {
@@ -604,6 +674,12 @@ class SelfieScreen extends BaseScreen {
     detectMobile() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                window.innerWidth <= 768;
+    }
+    
+    // Detectar se é iOS
+    detectIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     }
     
     // Método de teste para verificar se a captura funciona
