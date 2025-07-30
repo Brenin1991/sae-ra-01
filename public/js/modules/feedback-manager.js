@@ -31,6 +31,7 @@ class FeedbackManager {
             font-weight: bold;
             z-index: 4000;
             animation: feedbackFade 1s ease-out forwards;
+            z-index: 99999999;
         `;
         feedback.textContent = '✅ Correto!';
         
@@ -62,7 +63,7 @@ class FeedbackManager {
             font-size: 1.2em;
             font-weight: bold;
             z-index: 4000;
-            animation: feedbackFade 1s ease-out forwards;
+            animation: feedbackFade 1s ease-out forwards; z-index: 99999999;
         `;
         feedback.textContent = '❌ Incorreto!';
         
@@ -92,6 +93,7 @@ class FeedbackManager {
             z-index: 5000;
             animation: feedbackFade 1.5s ease-out forwards;
             text-align: center;
+             z-index: 99999999;
         `;
         feedback.innerHTML = '🎉<br>Quebra-Cabeça<br>Completo!';
         

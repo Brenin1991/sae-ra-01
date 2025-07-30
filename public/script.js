@@ -8,23 +8,186 @@ document.addEventListener("DOMContentLoaded", function () {
     // Prevenir zoom de pinça
     preventPinchZoom();
     
-    // Aguardar o ScreenManager ser inicializado
-    setTimeout(() => {
-        if (window.screenManager) {
-            integrateWithScreenManager();
-        } else {
-            console.log('⚠️ Aguardando ScreenManager...');
-            // Tentar novamente após mais tempo
-            setTimeout(() => {
-                if (window.screenManager) {
-                    integrateWithScreenManager();
-                } else {
-                    console.error('❌ ScreenManager não encontrado após timeout');
-                }
-            }, 1000);
-        }
-    }, 500);
+    // Mostrar overlay de carregamento
+    showLoadingOverlay();
+    
+    // Inicializar webcam e A-Frame imediatamente
+    initializeApp();
 });
+
+// Função para mostrar overlay de carregamento
+function showLoadingOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        color: white;
+        font-family: Arial, sans-serif;
+    `;
+    
+    const spinner = document.createElement('div');
+    spinner.style.cssText = `
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    `;
+    
+    const text = document.createElement('div');
+    text.textContent = 'Carregando experiência AR...';
+    text.style.cssText = `
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+    `;
+    
+    const progress = document.createElement('div');
+    progress.id = 'loading-progress';
+    progress.style.cssText = `
+        margin-top: 10px;
+        font-size: 14px;
+        opacity: 0.8;
+    `;
+    progress.textContent = 'Inicializando...';
+    
+    overlay.appendChild(spinner);
+    overlay.appendChild(text);
+    overlay.appendChild(progress);
+    document.body.appendChild(overlay);
+    
+    // Adicionar CSS para animação
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Função para atualizar progresso do carregamento
+function updateLoadingProgress(message) {
+    const progress = document.getElementById('loading-progress');
+    if (progress) {
+        progress.textContent = message;
+    }
+}
+
+// Função para esconder overlay de carregamento
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.5s ease-out';
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        }, 500);
+    }
+}
+
+// Função para inicializar a aplicação
+async function initializeApp() {
+    try {
+        updateLoadingProgress('Verificando A-Frame...');
+        
+        // Aguardar A-Frame estar pronto
+        await waitForAFrame();
+        
+        updateLoadingProgress('Aguardando cena carregar...');
+        await waitForScene();
+        
+        updateLoadingProgress('Inicializando câmera...');
+        await initWebcam();
+        
+        updateLoadingProgress('Carregando dados do jogo...');
+        await loadGameData();
+        
+        updateLoadingProgress('Configurando sistemas...');
+        setupAutoReset();
+        
+        updateLoadingProgress('Integrando sistemas...');
+        setTimeout(() => {
+            if (window.screenManager) {
+                integrateWithScreenManager();
+            } else {
+                console.log('⚠️ Aguardando ScreenManager...');
+                setTimeout(() => {
+                    if (window.screenManager) {
+                        integrateWithScreenManager();
+                    } else {
+                        console.error('❌ ScreenManager não encontrado após timeout');
+                    }
+                }, 1000);
+            }
+        }, 500);
+        
+        updateLoadingProgress('Finalizando...');
+        setTimeout(() => {
+            hideLoadingOverlay();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Erro na inicialização:', error);
+        updateLoadingProgress('Erro na inicialização. Recarregando...');
+        setTimeout(() => {
+            location.reload();
+        }, 3000);
+    }
+}
+
+// Função para aguardar A-Frame estar pronto
+function waitForAFrame() {
+    return new Promise((resolve) => {
+        if (window.AFRAME) {
+            resolve();
+        } else {
+            const checkAFrame = () => {
+                if (window.AFRAME) {
+                    resolve();
+                } else {
+                    setTimeout(checkAFrame, 100);
+                }
+            };
+            checkAFrame();
+        }
+    });
+}
+
+// Função para aguardar cena A-Frame estar pronta
+function waitForScene() {
+    return new Promise((resolve) => {
+        const scene = document.querySelector('a-scene');
+        if (scene && scene.hasLoaded) {
+            resolve();
+        } else {
+            const checkScene = () => {
+                const scene = document.querySelector('a-scene');
+                if (scene && scene.hasLoaded) {
+                    resolve();
+                } else {
+                    setTimeout(checkScene, 100);
+                }
+            };
+            checkScene();
+        }
+    });
+}
 
 // Função para prevenir zoom de pinça
 function preventPinchZoom() {
@@ -88,61 +251,10 @@ let isARMode = true;
 let currentStream = null;
 let photographedPieces = new Set();
 
-// Função para mostrar mensagens de debug na tela
+// Função para mostrar mensagens de debug na tela (DESABILITADA)
 function showDebugMessage(message) {
+    // Debug desabilitado - apenas console.log
     console.log(message);
-    
-    // Verificar ambiente
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const isHTTPS = window.location.protocol === 'https:';
-    const userAgent = navigator.userAgent;
-    
-    // Adicionar informações de ambiente na primeira mensagem
-    if (!window.debugInitialized) {
-        window.debugInitialized = true;
-        const envInfo = `🌐 Ambiente: ${isLocal ? 'LOCAL' : 'PRODUÇÃO'} | HTTPS: ${isHTTPS} | UserAgent: ${userAgent.substring(0, 50)}...`;
-        console.log(envInfo);
-    }
-    
-    // Criar ou atualizar elemento de debug na tela
-    let debugElement = document.getElementById('debug-messages');
-    if (!debugElement) {
-        debugElement = document.createElement('div');
-        debugElement.id = 'debug-messages';
-        debugElement.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-family: monospace;
-            z-index: 10000;
-            max-height: 200px;
-            overflow-y: auto;
-        `;
-        document.body.appendChild(debugElement);
-    }
-    
-    // Adicionar nova mensagem
-    const messageElement = document.createElement('div');
-    messageElement.textContent = new Date().toLocaleTimeString() + ': ' + message;
-    debugElement.appendChild(messageElement);
-    
-    // Manter apenas as últimas 10 mensagens
-    while (debugElement.children.length > 10) {
-        debugElement.removeChild(debugElement.firstChild);
-    }
-    
-    // Auto-remover após 5 segundos
-    setTimeout(() => {
-        if (messageElement.parentNode) {
-            messageElement.parentNode.removeChild(messageElement);
-        }
-    }, 5000);
 }
 
 // Componente billboard para orientar objetos sempre para a câmera
@@ -206,17 +318,7 @@ AFRAME.registerComponent('auto-detect', {
         // Testar intersecções
         const intersections = this.raycaster.intersectObjects(threeObjects, true);
         
-        // Debug: verificar se há objetos interativos
-        if (interactiveObjects.length === 0) {
-            console.log('⚠️ Nenhum objeto interativo encontrado');
-        } else {
-            console.log(`🎯 ${interactiveObjects.length} objetos interativos encontrados`);
-        }
-        
-        // Debug: verificar interseções
-        if (intersections.length > 0) {
-            console.log(`🎯 ${intersections.length} interseções detectadas`);
-        }
+
         
         // Rastrear objetos que estavam sendo mirados no frame anterior
         const previouslyIntersected = new Set();
@@ -364,115 +466,80 @@ function clearAllPecas() {
 
 // Função para carregar dados do JSON
 async function loadGameData() {
-    showDebugMessage('🎯 loadGameData iniciando...');
-    
-    // Verificar se estamos em HTTPS (necessário para câmera em produção)
-    const isHTTPS = window.location.protocol === 'https:';
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
-    if (!isHTTPS && !isLocal) {
-        showDebugMessage('⚠️ ATENÇÃO: Não está em HTTPS - câmera pode não funcionar!');
-    }
-    
     try {
-        showDebugMessage('📡 Fazendo fetch do data.json...');
+        updateLoadingProgress('Carregando configurações...');
         const response = await fetch('assets/data/data.json');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        showDebugMessage('✅ data.json carregado, fazendo parse...');
+        updateLoadingProgress('Processando dados...');
         gameData = await response.json();
-        showDebugMessage('✅ gameData carregado');
         
-        // Verificar se os caminhos estão corretos
-        if (gameData && gameData.fase1 && gameData.fase1.objetos) {
-            showDebugMessage('🔍 Verificando caminhos dos objetos:');
-            gameData.fase1.objetos.forEach((obj, index) => {
-                showDebugMessage(`  Objeto ${index + 1}: ${obj.id} - ${obj.imagem} / ${obj.peca}`);
-            });
-        }
-        
-        showDebugMessage('🎯 Carregando fase: ' + currentPhase);
+        updateLoadingProgress('Configurando objetos...');
         await loadPhase(currentPhase);
         
     } catch (error) {
-        showDebugMessage('❌ Erro ao carregar dados: ' + error.message);
-        showDebugMessage('🔍 URL tentada: assets/data/data.json');
-        showDebugMessage('🔍 URL completa: ' + window.location.href + 'assets/data/data.json');
+        console.error('Erro ao carregar dados:', error);
         
         // Tentar URLs alternativas
-        showDebugMessage('🔄 Tentando URLs alternativas...');
         try {
+            updateLoadingProgress('Tentando caminho alternativo...');
             const altResponse = await fetch('/assets/data/data.json');
             if (altResponse.ok) {
-                showDebugMessage('✅ data.json encontrado com caminho alternativo');
                 gameData = await altResponse.json();
                 await loadPhase(currentPhase);
             }
         } catch (altError) {
-            showDebugMessage('❌ URL alternativa também falhou');
+            console.error('URL alternativa também falhou');
+            throw altError;
         }
     }
 }
 
 // Função para carregar uma fase
 async function loadPhase(phaseName) {
-    showDebugMessage('🎯 loadPhase chamada: ' + phaseName);
-    
     if (!gameData || !gameData[phaseName]) {
-        showDebugMessage('❌ Fase não encontrada: ' + phaseName);
+        console.error('Fase não encontrada:', phaseName);
         return;
     }
     
     const phaseData = gameData[phaseName];
-    showDebugMessage('✅ Dados da fase carregados');
     
-    showDebugMessage('🎯 Carregando modelo...');
     try {
         await loadModel(phaseData.model);
-        showDebugMessage('✅ Modelo carregado');
     } catch (error) {
-        showDebugMessage('⚠️ Modelo falhou, continuando sem ele: ' + error);
+        console.warn('Modelo falhou, continuando sem ele:', error);
     }
     
-    showDebugMessage('🎯 Configurando objetos interativos...');
     setupInteractiveObjects(phaseData.objetos);
-    showDebugMessage('✅ Fase carregada completamente');
 }
 
 // Função para carregar modelo GLB
 function loadModel(modelPath) {
     return new Promise((resolve, reject) => {
-        showDebugMessage('🎯 loadModel iniciando: ' + modelPath);
-        
         const modelEntity = document.getElementById('main-model');
         if (!modelEntity) {
-            showDebugMessage('❌ Elemento do modelo não encontrado');
             reject('Elemento do modelo não encontrado');
             return;
         }
         
-        showDebugMessage('✅ Elemento do modelo encontrado, carregando...');
         modelEntity.setAttribute('gltf-model', modelPath);
         
         // Timeout para evitar travamento
         const timeout = setTimeout(() => {
-            showDebugMessage('⚠️ Timeout ao carregar modelo - continuando mesmo assim');
             resolve(null);
         }, 10000);
         
         modelEntity.addEventListener('model-loaded', function() {
             clearTimeout(timeout);
             loadedModel = modelEntity.getObject3D('mesh');
-            showDebugMessage('✅ Modelo carregado com sucesso');
             resolve(loadedModel);
         });
         
         modelEntity.addEventListener('model-error', function(error) {
             clearTimeout(timeout);
-            showDebugMessage('❌ Erro ao carregar modelo: ' + error);
             reject(error);
         });
     });
@@ -480,44 +547,23 @@ function loadModel(modelPath) {
 
 // Função para configurar objetos interativos
 function setupInteractiveObjects(objects) {
-    showDebugMessage('🎯 setupInteractiveObjects chamada: ' + objects.length + ' objetos');
-    
     const container = document.getElementById('interactive-objects');
     if (!container) {
-        showDebugMessage('❌ Container de objetos não encontrado');
+        console.error('Container de objetos não encontrado');
         return;
     }
-    
-    showDebugMessage('✅ Container encontrado, limpando...');
-    showDebugMessage('🔍 Container ID: ' + container.id);
-    showDebugMessage('🔍 Container children antes: ' + container.children.length);
     
     while (container.firstChild) {
         container.removeChild(container.firstChild);
     }
     
-    showDebugMessage('🔍 Container children depois: ' + container.children.length);
-    
-    showDebugMessage('🎯 Criando objetos interativos...');
-    showDebugMessage('🔍 Modelo carregado: ' + (loadedModel ? 'SIM' : 'NÃO'));
-    
-    // CRIAR OBJETOS NORMALMENTE (SEM DELAY)
     objects.forEach((obj, index) => {
-        showDebugMessage(`🎯 Criando objeto ${index + 1}/${objects.length}: ${obj.id}`);
-        
-        // CRIAR PLANE E PEÇA JUNTOS
         createInteractivePlane(obj, container, index);
         
-        // OPERAÇÃO NO MODELO DEPOIS (se necessário)
         if (loadedModel) {
             hideObjectInModel(obj.id);
         }
     });
-    
-    showDebugMessage('✅ Todos os objetos criados simultaneamente');
-    
-    showDebugMessage('🔍 Container children final: ' + container.children.length);
-    showDebugMessage('✅ setupInteractiveObjects concluída');
 }
 
 // Função para esconder objeto no modelo 3D
@@ -554,13 +600,7 @@ function getObjectPositionFromModel(objectId) {
 
 // Função para criar plane interativo
 function createInteractivePlane(obj, container, index) {
-    showDebugMessage('🎯 createInteractivePlane: ' + obj.id + ' (index: ' + index + ')');
-    
-    // Verificar se há caracteres especiais nos nomes
-    const hasSpecialChars = /[áàâãéèêíìîóòôõúùûç]/i.test(obj.id);
-    if (hasSpecialChars) {
-        showDebugMessage('⚠️ ATENÇÃO: ID contém caracteres especiais: ' + obj.id);
-    }
+
     const plane = document.createElement('a-plane');
     
     let position = getObjectPositionFromModel(obj.id);
@@ -612,9 +652,6 @@ function createInteractivePlane(obj, container, index) {
         z: position.z
     };
     
-    showDebugMessage('🎯 Criando peça VERDE para: ' + obj.id);
-    showDebugMessage('🎯 Posição da peça: ' + JSON.stringify(pecaPosition));
-    
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
@@ -632,20 +669,11 @@ function createInteractivePlane(obj, container, index) {
     pecaPlane.id = 'peca-' + obj.id + '-' + timestamp;
     pecaPlane.classList.add('peca-plane');
     
-    showDebugMessage('🎯 Peça VERDE criada com ID: ' + pecaPlane.id);
-    
     // ADICIONAR PEÇA VERDE IMEDIATAMENTE
     container.appendChild(pecaPlane);
-    showDebugMessage('🎯 Peça VERDE adicionada ao container IMEDIATAMENTE');
     
     // SALVAR REFERÊNCIA DA PEÇA NO ELEMENTO INTERATIVO
     plane.pecaPlane = pecaPlane;
-    showDebugMessage('🎯 Referência da peça salva no plane');
-    
-
-    // Peça já foi adicionada acima
-    plane.pecaPlane = pecaPlane;
-    showDebugMessage('🎯 Referência da peça salva no plane');
 }
 
 // Inicializar webcam
@@ -658,9 +686,10 @@ async function initWebcam() {
         const video = document.getElementById('webcam');
         
         if (!video) {
-            console.error('❌ Elemento de vídeo não encontrado!');
-            return;
+            throw new Error('Elemento de vídeo não encontrado!');
         }
+        
+        updateLoadingProgress('Solicitando permissão da câmera...');
         
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
@@ -673,14 +702,18 @@ async function initWebcam() {
         video.srcObject = stream;
         currentStream = stream;
         
-        video.onloadedmetadata = function() {
-            console.log('📷 Webcam inicializada com sucesso!');
-        };
+        return new Promise((resolve) => {
+            video.onloadedmetadata = function() {
+                console.log('📷 Webcam inicializada com sucesso!');
+                resolve();
+            };
+        });
         
     } catch (error) {
-        console.error('❌ Erro ao acessar webcam:', error);
+        console.error('Erro ao acessar webcam:', error);
         
         try {
+            updateLoadingProgress('Tentando câmera frontal...');
             const video = document.getElementById('webcam');
             if (video) {
                 const frontStream = await navigator.mediaDevices.getUserMedia({ 
@@ -690,14 +723,24 @@ async function initWebcam() {
                 });
                 video.srcObject = frontStream;
                 currentStream = frontStream;
+                
+                return new Promise((resolve) => {
+                    video.onloadedmetadata = function() {
+                        console.log('📷 Câmera frontal inicializada!');
+                        resolve();
+                    };
+                });
             }
         } catch (frontError) {
-            console.error('❌ Erro com câmera frontal também:', frontError);
+            console.error('Erro com câmera frontal também:', frontError);
             
             const scene = document.querySelector('a-scene');
             if (scene) {
                 scene.setAttribute('background', 'color: #001133');
             }
+            
+            // Continuar mesmo sem câmera
+            resolve();
         }
     }
 }
@@ -826,12 +869,10 @@ function vibrateDevice() {
 function checkVisiblePieces() {
     // Evitar chamadas duplicadas
     if (window.isCheckingPieces) {
-        console.log('⚠️ checkVisiblePieces já em execução, ignorando...');
         return;
     }
     
     window.isCheckingPieces = true;
-    console.log('🎯 Iniciando checkVisiblePieces...');
     const allPieces = document.querySelectorAll('.peca-plane');
     
 
@@ -863,14 +904,7 @@ function checkVisiblePieces() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                      window.innerWidth <= 768;
     
-    console.log('📱 Mobile:', isMobile);
-    console.log('📊 Total peças:', allPieces.length);
-    console.log('👁️ Peças visíveis (getBoundingClientRect):', visiblePieces.length);
-    console.log('🎯 Peças visíveis (A-Frame):', aframeVisiblePieces.length);
-    
     const finalVisiblePieces = isMobile ? aframeVisiblePieces : (aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces);
-    
-    console.log('✅ Peças finais selecionadas:', finalVisiblePieces.length);
     
 
     
@@ -889,7 +923,6 @@ function checkVisiblePieces() {
     
     // Reset da flag
     window.isCheckingPieces = false;
-    console.log('📸 Verificação de peças concluída');
 }
 
 // Função para marcar peça como fotografada

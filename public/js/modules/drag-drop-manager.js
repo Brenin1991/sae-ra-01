@@ -34,13 +34,13 @@ class DragDropManager {
     // Eventos de drag and drop
     onDragStart(e, piece) {
         this.draggedPiece = piece;
-        // Removido: piece.style.opacity = '0.5'; - estava causando fundo preto
+        piece.style.opacity = '0.5';
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/html', piece.outerHTML);
     }
     
     onDragEnd(e, piece) {
-        // Removido: piece.style.opacity = '1'; - não é mais necessário
+        piece.style.opacity = '1';
         this.draggedPiece = null;
         
         // Remover highlights de todos os targets

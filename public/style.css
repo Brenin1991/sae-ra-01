@@ -626,6 +626,7 @@ a-scene {
     padding: 20px;
     box-sizing: border-box;
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .puzzle-screen.ativo {
@@ -790,6 +791,7 @@ a-scene {
     align-items: center;
     justify-content: center;
     animation: congratulationsEnter 0.8s ease-out;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 @keyframes congratulationsEnter {
@@ -986,11 +988,12 @@ a-scene {
     flex-direction: column;
     color: white;
     text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 #parabens-header {
     position: fixed;
-    top: 10%;
+    top: 15%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
@@ -1009,10 +1012,10 @@ a-scene {
     transform: translate(-50%, -50%);
 }
 
-#narracao-icon-parabens {
+.narracao-icon {
     position: fixed;
-    top: 40%;
-    left: 20%;
+    top: 5%;
+    left: 10%;
     transform: translate(-50%, -50%);
 }
 
@@ -1070,6 +1073,7 @@ a-scene {
     top: 75%;
     left: 85%;
     transform: translate(-50%, -50%);
+    z-index: 99999999;
 }
 
 #btn-certificado {
