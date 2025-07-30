@@ -119,6 +119,89 @@ class PuzzleScreen extends BaseScreen {
                 element.classList.add('visible');
             }, index * 150);
         });
+        
+        // Adicionar animação de entrada da tela
+        this.element.style.opacity = '0';
+        this.element.style.transform = 'scale(0.95)';
+        this.element.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        
+        setTimeout(() => {
+            this.element.style.opacity = '1';
+            this.element.style.transform = 'scale(1)';
+        }, 100);
+        
+        // Adicionar CSS para animação de confete
+        if (!document.getElementById('confetti-css')) {
+            const style = document.createElement('style');
+            style.id = 'confetti-css';
+            style.textContent = `
+                @keyframes confettiFall {
+                    0% {
+                        transform: translateY(0) rotate(0deg);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translateY(100vh) rotate(360deg);
+                        opacity: 0;
+                    }
+                }
+                
+                .puzzle-element {
+                    opacity: 0;
+                    transform: translateY(20px);
+                    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+                }
+                
+                .puzzle-element.visible {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                
+                .dragging {
+                    cursor: grabbing !important;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
+                }
+                
+                .highlight {
+                    border: 3px solid #4CAF50 !important;
+                    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5) !important;
+                }
+                
+                .valid-target {
+                    border-color: #4CAF50 !important;
+                    background-color: rgba(76, 175, 80, 0.1) !important;
+                }
+                
+                .invalid-target {
+                    border-color: #f44336 !important;
+                    background-color: rgba(244, 67, 54, 0.1) !important;
+                }
+                
+                .correct {
+                    border-color: #4CAF50 !important;
+                    background-color: rgba(76, 175, 80, 0.2) !important;
+                }
+                
+                .piece-placed {
+                    animation: piecePlaced 0.6s ease-out;
+                }
+                
+                @keyframes piecePlaced {
+                    0% {
+                        transform: scale(0.8);
+                        opacity: 0;
+                    }
+                    50% {
+                        transform: scale(1.1);
+                    }
+                    100% {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
     
     cleanupAnimations() {
