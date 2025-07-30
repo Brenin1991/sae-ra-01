@@ -869,10 +869,12 @@ function vibrateDevice() {
 function checkVisiblePieces() {
     // Evitar chamadas duplicadas
     if (window.isCheckingPieces) {
+        console.log('⚠️ checkVisiblePieces já em execução, ignorando...');
         return;
     }
     
     window.isCheckingPieces = true;
+    console.log('🎯 Iniciando checkVisiblePieces...');
     const allPieces = document.querySelectorAll('.peca-plane');
     
 
@@ -904,7 +906,14 @@ function checkVisiblePieces() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                      window.innerWidth <= 768;
     
+    console.log('📱 Mobile:', isMobile);
+    console.log('📊 Total peças:', allPieces.length);
+    console.log('👁️ Peças visíveis (getBoundingClientRect):', visiblePieces.length);
+    console.log('🎯 Peças visíveis (A-Frame):', aframeVisiblePieces.length);
+    
     const finalVisiblePieces = isMobile ? aframeVisiblePieces : (aframeVisiblePieces.length > 0 ? aframeVisiblePieces : visiblePieces);
+    
+    console.log('✅ Peças finais selecionadas:', finalVisiblePieces.length);
     
 
     
@@ -923,7 +932,9 @@ function checkVisiblePieces() {
     
     // Reset da flag
     window.isCheckingPieces = false;
+    console.log('📸 Verificação de peças concluída');
 }
+
 
 // Função para marcar peça como fotografada
 function markPieceAsPhotographed(piece) {
@@ -956,30 +967,7 @@ function isPiecePhotographed(piece) {
     return photographedPieces.has(piece.id);
 }
 
-// Função de debug para testar detecção de peças em dispositivos móveis
-function debugVisiblePieces() {
-    const allPieces = document.querySelectorAll('.peca-plane');
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                     window.innerWidth <= 768;
-    
-    console.log('🔍 Debug de peças visíveis:');
-    console.log('📱 Dispositivo móvel:', isMobile);
-    console.log('📊 Total de peças:', allPieces.length);
-    
-    allPieces.forEach((piece, index) => {
-        const isVisible = piece.getAttribute('visible') === 'true';
-        const object3DVisible = piece.object3D ? piece.object3D.visible : 'N/A';
-        const isPhotographed = isPiecePhotographed(piece);
-        
-        console.log(`Peça ${index + 1}:`, {
-            id: piece.id,
-            visible: isVisible,
-            object3DVisible: object3DVisible,
-            photographed: isPhotographed,
-            position: piece.getAttribute('position')
-        });
-    });
-}
+
 
 // Função para resetar peças fotografadas
 function resetPhotographedPieces() {
