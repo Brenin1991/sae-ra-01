@@ -655,7 +655,7 @@ function createInteractivePlane(obj, container, index) {
     pecaPlane.setAttribute('position', pecaPosition);
     pecaPlane.setAttribute('width', '3.0');
     pecaPlane.setAttribute('height', '3.0');
-    pecaPlane.setAttribute('visible', 'true'); // INVISÍVEL POR PADRÃO - APARECE SÓ QUANDO MIRAR
+    pecaPlane.setAttribute('visible', 'false'); // INVISÍVEL POR PADRÃO - APARECE SÓ QUANDO MIRAR
     pecaPlane.setAttribute('billboard', '');
     pecaPlane.setAttribute('material', {
         src: obj.peca,
