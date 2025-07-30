@@ -150,9 +150,9 @@ input, textarea {
 
 #tutorial-button {
     position: fixed;
-    bottom: -9%;
+    bottom: 0%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, 0%);
     z-index: 2100;
     width: 260px;
     height: 75px;
@@ -557,7 +557,7 @@ a-scene {
     }
     
     #tutorial-button {
-        bottom: -10%;
+        bottom: 10%;
         width: 180px;
         height: 50px;
         background-size: contain;
@@ -694,10 +694,9 @@ a-scene {
 }
 
 .pieces-area, .assembly-area {
-    flex: 1;
-    padding: 20px;
     position: fixed;
     top: 100px;
+    left: 15%;
 }
 
 
@@ -960,12 +959,11 @@ a-scene {
     .puzzle-pieces {
         display: inline-grid;
         grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        gap: 15px;
         min-height: 300px;
         max-height: 500px;
         width: 300px;
         position: fixed;
-        bottom: 100px;
+        bottom: 50px;
     }
     
     .puzzle-targets {
