@@ -35,10 +35,9 @@ class DragDropManager {
     onDragStart(e, piece) {
         this.draggedPiece = piece;
         
-        // Aplicar transparência corretamente
+        // Aplicar apenas transparência
         piece.style.opacity = '0.6';
-        piece.style.transform = 'scale(1.1)';
-        piece.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+        piece.style.transition = 'opacity 0.2s ease';
         piece.style.zIndex = '1000';
         
         // Adicionar classe para feedback visual
@@ -54,7 +53,6 @@ class DragDropManager {
     onDragEnd(e, piece) {
         // Restaurar aparência original
         piece.style.opacity = '1';
-        piece.style.transform = 'scale(1)';
         piece.style.zIndex = 'auto';
         piece.classList.remove('dragging');
         

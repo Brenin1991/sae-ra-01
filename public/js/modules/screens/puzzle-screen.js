@@ -120,14 +120,12 @@ class PuzzleScreen extends BaseScreen {
             }, index * 150);
         });
         
-        // Adicionar animação de entrada da tela
+        // Adicionar animação de entrada da tela (apenas fade)
         this.element.style.opacity = '0';
-        this.element.style.transform = 'scale(0.95)';
-        this.element.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        this.element.style.transition = 'opacity 0.5s ease-out';
         
         setTimeout(() => {
             this.element.style.opacity = '1';
-            this.element.style.transform = 'scale(1)';
         }, 100);
         
         // Adicionar CSS para animação de confete
@@ -148,18 +146,17 @@ class PuzzleScreen extends BaseScreen {
                 
                 .puzzle-element {
                     opacity: 0;
-                    transform: translateY(20px);
-                    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+                    transition: opacity 0.3s ease-out;
                 }
                 
                 .puzzle-element.visible {
                     opacity: 1;
-                    transform: translateY(0);
                 }
                 
                 .dragging {
                     cursor: grabbing !important;
                     box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
+                    transform: none !important;
                 }
                 
                 .highlight {
@@ -189,9 +186,11 @@ class PuzzleScreen extends BaseScreen {
                 @keyframes piecePlaced {
                     0% {
                         opacity: 0;
+                        transform: none;
                     }
                     100% {
                         opacity: 1;
+                        transform: none;
                     }
                 }
             `;

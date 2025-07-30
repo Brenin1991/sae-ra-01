@@ -132,7 +132,7 @@ class PuzzleGameManager {
                 pieceContainer.style.opacity = '1';
             }, 100);
             
-            // Adicionar efeito de brilho
+            // Adicionar efeito de brilho (sem mudar escala)
             setTimeout(() => {
                 pieceContainer.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3)) brightness(1.1)';
                 setTimeout(() => {
