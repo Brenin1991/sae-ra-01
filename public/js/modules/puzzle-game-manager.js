@@ -110,8 +110,7 @@ class PuzzleGameManager {
                 align-items: center;
                 justify-content: center;
                 opacity: 0;
-                transform: scale(0.8);
-                transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+                transition: opacity 0.6s ease-out;
             `;
             
             // Criar imagem da peça
@@ -128,10 +127,9 @@ class PuzzleGameManager {
             pieceContainer.appendChild(pieceImg);
             target.appendChild(pieceContainer);
             
-            // Animar entrada da imagem com efeito de pop
+            // Animar entrada da imagem (apenas fade, sem scale)
             setTimeout(() => {
                 pieceContainer.style.opacity = '1';
-                pieceContainer.style.transform = 'scale(1)';
             }, 100);
             
             // Adicionar efeito de brilho
@@ -143,10 +141,9 @@ class PuzzleGameManager {
             }, 600);
         }
         
-        // Animar saída da peça original
-        piece.style.transform = 'scale(0.8)';
+        // Animar saída da peça original (apenas fade, sem scale)
         piece.style.opacity = '0';
-        piece.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+        piece.style.transition = 'opacity 0.3s ease-out';
         
         setTimeout(() => {
             piece.style.display = 'none';
