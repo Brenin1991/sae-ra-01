@@ -157,7 +157,25 @@ class PuzzleScreen extends BaseScreen {
         // Limpar animações do puzzle
         const puzzleElements = this.element.querySelectorAll('.puzzle-element');
         puzzleElements.forEach(element => {
-            element.classList.remove('visible');
+            element.style.opacity = '';
+            element.style.transform = '';
+            element.style.transition = '';
+        });
+        
+        // Limpar animações das peças
+        const pieces = this.element.querySelectorAll('.puzzle-piece');
+        pieces.forEach(piece => {
+            piece.style.opacity = '';
+            piece.style.transform = '';
+            piece.style.transition = '';
+        });
+        
+        // Limpar animações dos targets
+        const targets = this.element.querySelectorAll('.puzzle-target');
+        targets.forEach(target => {
+            target.style.opacity = '';
+            target.style.transform = '';
+            target.style.transition = '';
         });
     }
     

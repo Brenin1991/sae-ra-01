@@ -21,6 +21,10 @@ class SelfieScreen extends BaseScreen {
         this.setupSelfieElements();
         this.setupSelfieControls();
         this.setupCameraIcon();
+        
+        // Detectar se é mobile
+        this.isMobile = this.detectMobile();
+        console.log('📱 Dispositivo móvel:', this.isMobile);
     }
     
     setupSelfieElements() {
@@ -112,20 +116,57 @@ class SelfieScreen extends BaseScreen {
         try {
             console.log('📷 Inicializando câmera de selfie...');
             
-            // Solicitar acesso à câmera frontal
-            this.selfieStream = await navigator.mediaDevices.getUserMedia({
+            // Configurações específicas para mobile
+            const constraints = {
                 video: {
                     facingMode: 'user', // Câmera frontal
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    width: { ideal: 1280, max: 1920 },
+                    height: { ideal: 720, max: 1080 },
+                    aspectRatio: { ideal: 16/9 }
                 },
                 audio: false
-            });
+            };
+            
+            // Tentar câmera frontal primeiro
+            try {
+                this.selfieStream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log('✅ Câmera frontal inicializada');
+            } catch (frontError) {
+                console.log('⚠️ Câmera frontal falhou, tentando traseira...');
+                
+                // Se falhar, tentar câmera traseira
+                const backConstraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280, max: 1920 },
+                        height: { ideal: 720, max: 1080 },
+                        aspectRatio: { ideal: 16/9 }
+                    },
+                    audio: false
+                };
+                
+                this.selfieStream = await navigator.mediaDevices.getUserMedia(backConstraints);
+                console.log('✅ Câmera traseira inicializada como fallback');
+            }
             
             // Conectar stream ao vídeo
             if (this.selfieCamera) {
                 this.selfieCamera.srcObject = this.selfieStream;
-                console.log('✅ Câmera de selfie inicializada');
+                
+                // Configurar para mobile
+                this.selfieCamera.style.objectFit = 'cover';
+                this.selfieCamera.style.width = '100%';
+                this.selfieCamera.style.height = '100%';
+                
+                // Aguardar vídeo carregar
+                await new Promise((resolve) => {
+                    this.selfieCamera.onloadedmetadata = () => {
+                        console.log('✅ Vídeo carregado:', this.selfieCamera.videoWidth, 'x', this.selfieCamera.videoHeight);
+                        resolve();
+                    };
+                });
+                
+                console.log('✅ Câmera de selfie inicializada com sucesso');
             }
         } catch (error) {
             console.error('❌ Erro ao inicializar câmera de selfie:', error);
@@ -150,18 +191,43 @@ class SelfieScreen extends BaseScreen {
         try {
             console.log('📸 Tirando selfie...');
             
-            // Configurar canvas
+            // Configurar canvas com tamanho otimizado para mobile
             const context = this.selfieCanvas.getContext('2d');
-            this.selfieCanvas.width = this.selfieCamera.videoWidth;
-            this.selfieCanvas.height = this.selfieCamera.videoHeight;
             
-            // Desenhar vídeo no canvas (espelhado)
+            // Usar dimensões da tela para melhor qualidade no mobile
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            
+            this.selfieCanvas.width = screenWidth;
+            this.selfieCanvas.height = screenHeight;
+            
+            // Calcular proporções para manter aspect ratio
+            const videoAspect = this.selfieCamera.videoWidth / this.selfieCamera.videoHeight;
+            const canvasAspect = screenWidth / screenHeight;
+            
+            let drawWidth, drawHeight, offsetX, offsetY;
+            
+            if (videoAspect > canvasAspect) {
+                // Vídeo mais largo que canvas
+                drawHeight = screenHeight;
+                drawWidth = screenHeight * videoAspect;
+                offsetX = (screenWidth - drawWidth) / 2;
+                offsetY = 0;
+            } else {
+                // Vídeo mais alto que canvas
+                drawWidth = screenWidth;
+                drawHeight = screenWidth / videoAspect;
+                offsetX = 0;
+                offsetY = (screenHeight - drawHeight) / 2;
+            }
+            
+            // Desenhar vídeo no canvas (espelhado para selfie)
             context.scale(-1, 1);
-            context.translate(-this.selfieCanvas.width, 0);
-            context.drawImage(this.selfieCamera, 0, 0);
+            context.translate(-screenWidth, 0);
+            context.drawImage(this.selfieCamera, offsetX, offsetY, drawWidth, drawHeight);
             
-            // Converter para imagem
-            const imageData = this.selfieCanvas.toDataURL('image/jpeg', 0.8);
+            // Converter para imagem com alta qualidade
+            const imageData = this.selfieCanvas.toDataURL('image/jpeg', 0.9);
             
             // Mostrar preview
             this.showSelfiePreview(imageData);
@@ -301,18 +367,32 @@ class SelfieScreen extends BaseScreen {
                 return;
             }
             
-            // Capturar a tela de selfie
-            const canvas = await html2canvas(this.element, {
+            // Configurações otimizadas para mobile
+            const options = {
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#000000',
-                scale: 2, // Melhor qualidade
+                scale: window.devicePixelRatio || 2, // Usar pixel ratio do dispositivo
                 logging: false,
                 width: window.innerWidth,
-                height: window.innerHeight
-            });
+                height: window.innerHeight,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: window.innerWidth,
+                windowHeight: window.innerHeight,
+                // Configurações específicas para mobile
+                foreignObjectRendering: false, // Melhor compatibilidade mobile
+                removeContainer: true,
+                ignoreElements: (element) => {
+                    // Ignorar elementos que podem causar problemas
+                    return element.classList.contains('capture-ignore');
+                }
+            };
             
-            // Converter para imagem
+            // Capturar a tela de selfie
+            const canvas = await html2canvas(this.element, options);
+            
+            // Converter para imagem com qualidade otimizada
             const imageData = canvas.toDataURL('image/jpeg', 0.9);
             
             // Salvar a imagem
@@ -461,14 +541,29 @@ class SelfieScreen extends BaseScreen {
         const selfieElements = this.element.querySelectorAll('.selfie-button');
         selfieElements.forEach((element, index) => {
             element.style.opacity = '0';
-            element.style.transform = 'translateY(20px)';
+            element.style.transform = this.isMobile ? 'translateY(30px)' : 'translateY(20px)';
             
             setTimeout(() => {
                 element.style.transition = 'all 0.5s ease';
                 element.style.opacity = '1';
                 element.style.transform = 'translateY(0)';
-            }, index * 200);
+            }, index * (this.isMobile ? 150 : 200));
         });
+        
+        // Animar ícone da câmera se for mobile
+        if (this.isMobile) {
+            const cameraIcon = this.element.querySelector('#camera-icon-selfie');
+            if (cameraIcon) {
+                cameraIcon.style.opacity = '0';
+                cameraIcon.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    cameraIcon.style.transition = 'all 0.5s ease';
+                    cameraIcon.style.opacity = '1';
+                    cameraIcon.style.transform = 'scale(1)';
+                }, 500);
+            }
+        }
     }
     
     cleanupAnimations() {
@@ -479,6 +574,12 @@ class SelfieScreen extends BaseScreen {
             element.style.transform = '';
             element.style.transition = '';
         });
+    }
+    
+    // Detectar se é dispositivo móvel
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+               window.innerWidth <= 768;
     }
     
     // Método de teste para verificar se a captura funciona
