@@ -71,9 +71,20 @@
     <div id="congratulations-screen" class="congratulations-screen">
         <img id="parabens-header" src="assets/textures/parabens-header.png" alt="Parabéns">
         <img id="narracao-icon-parabens" src="assets/textures/narracao-icon.png" alt="Parabéns">
-        <img id="parabens-texto-01" src="assets/textures/parabens-texto-01.png" alt="Parabéns">
         <img id="btn-next" src="assets/textures/btn-next.png" alt="Parabéns">
-        <img id="premio-01" src="assets/textures/premio-01.png" alt="Parabéns">
+        <div>
+            <img id="parabens-texto-01" src="assets/textures/parabens-texto-01.png" alt="Parabéns">
+            <img id="parabens-texto-02" src="assets/textures/parabens-texto-02.png" alt="Parabéns" style="display: none;">
+            <div id="premio-container">
+                <img id="premio-01" src="assets/textures/premio-01.png" alt="Parabéns">
+                <div id="premio-empty-container" style="display: none;">
+                    <img id="premio-empty" src="assets/textures/premio-empty.png" alt="Parabéns">
+                    <img id="btn-jogar" src="assets/textures/btn-jogar.png" alt="Jogar Novamente">
+                </div>
+            </div>
+            
+        </div>
+
         <img id="btn-certificado" src="assets/textures/btn-certificado.png" alt="Parabéns">
         <div id="puzzle-resultado-congratulations" class="puzzle-resultado-congratulations"></div>
     </div>
@@ -156,6 +167,9 @@
     <script src="js/modules/drag-drop-manager.js"></script>
     <script src="js/modules/puzzle-game-manager.js"></script>
     <script src="puzzle-manager.js"></script>
+    
+    <!-- Menu Dinâmico de Parabéns -->
+    <script src="js/modules/congratulations-menu.js"></script>
 </body>
 
 </html>

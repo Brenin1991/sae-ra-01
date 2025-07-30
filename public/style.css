@@ -990,12 +990,19 @@ a-scene {
 
 #parabens-header {
     position: fixed;
-    top: 20%;
+    top: 10%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
 #parabens-texto-01 {
+    position: fixed;
+    top: 63%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#parabens-texto-02 {
     position: fixed;
     top: 63%;
     left: 50%;
@@ -1009,11 +1016,53 @@ a-scene {
     transform: translate(-50%, -50%);
 }
 
-#premio-01 {
+#premio-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
     position: fixed;
     top: 75%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+#premio-container img {
+    padding: 10px;
+}
+
+#premio-empty-container {
+    display: none; /* Escondido por padrão */
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+}
+
+#premio-empty {
+    display: block;
+}
+
+#premio-01 {
+    display: block; /* SEMPRE VISÍVEL */
+}
+
+#btn-jogar {
+    display: block;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    position: absolute;
+    bottom: -40px; /* Posicionado embaixo do empty */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+}
+
+#btn-jogar:hover {
+    transform: translateX(-50%) scale(1.05);
+}
+
+#btn-jogar:active {
+    transform: translateX(-50%) scale(0.95);
 }
 
 #btn-next {
@@ -1025,7 +1074,7 @@ a-scene {
 
 #btn-certificado {
     position: fixed;
-    bottom: 5%;
+    bottom: 0;
     left: 50%;
     transform: translate(-50%, -50%);
 }

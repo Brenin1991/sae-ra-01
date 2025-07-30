@@ -128,6 +128,17 @@ class FeedbackManager {
         
         // Som de vitória
         this.playVictorySound();
+        
+        // Inicializar menu dinâmico
+        if (window.congratulationsMenu) {
+            window.congratulationsMenu.init();
+            // Aplicar estado do prêmio após um delay para garantir que elementos carregaram
+            setTimeout(() => {
+                window.congratulationsMenu.applyPremioState();
+            }, 500);
+        } else {
+            console.error('❌ CongratulationsMenu não encontrado');
+        }
     }
     
     // Mostrar imagem de resultado
