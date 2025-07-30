@@ -88,6 +88,15 @@ class PuzzleGameManager {
         // Marcar target como correto
         this.elementManager.markTargetAsCorrect(piece.dataset.pieceId);
         
+        // Feedback visual imediato
+        target.classList.add('correct');
+        target.style.transform = 'scale(1.1)';
+        target.style.transition = 'transform 0.3s ease';
+        
+        setTimeout(() => {
+            target.style.transform = 'scale(1)';
+        }, 300);
+        
         // Mostrar a imagem da peça no target
         const puzzleData = this.dataManager.getPuzzleData();
         const pieceData = puzzleData.find(p => p.id === piece.dataset.pieceId);
@@ -102,6 +111,7 @@ class PuzzleGameManager {
             pieceImg.style.cssText = `
                 opacity: 0;
                 transition: opacity 0.5s ease-in-out;
+                transform: scale(0.8);
             `;
             
             // Aplicar tamanho original da peça
@@ -119,11 +129,19 @@ class PuzzleGameManager {
             // Animar entrada da imagem
             setTimeout(() => {
                 pieceImg.style.opacity = '1';
+                pieceImg.style.transform = 'scale(1)';
+                pieceImg.style.transition = 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out';
             }, 100);
         }
         
-        // Remover peça da área de peças
-        piece.style.display = 'none';
+        // Animar saída da peça original
+        piece.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        piece.style.opacity = '0';
+        piece.style.transform = 'scale(0.8)';
+        
+        setTimeout(() => {
+            piece.style.display = 'none';
+        }, 300);
         
         // Incrementar contador
         this.completedPieces++;
@@ -139,6 +157,16 @@ class PuzzleGameManager {
     
     // Mostrar feedback de colocação incorreta
     showIncorrectPlacementFeedback() {
+        // Feedback visual de erro
+        if (this.draggedPiece) {
+            this.draggedPiece.style.transition = 'transform 0.3s ease';
+            this.draggedPiece.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                this.draggedPiece.style.transform = 'scale(1)';
+            }, 300);
+        }
+        
         this.feedbackManager.showIncorrectPlacementFeedback();
     }
     
@@ -149,6 +177,18 @@ class PuzzleGameManager {
         
         // Feedback visual de conclusão
         this.feedbackManager.showCompletionFeedback();
+        
+        // Animar todos os targets como completos
+        this.elementManager.getTargets().forEach((target, index) => {
+            setTimeout(() => {
+                target.style.transform = 'scale(1.1)';
+                target.style.transition = 'transform 0.3s ease';
+                
+                setTimeout(() => {
+                    target.style.transform = 'scale(1)';
+                }, 300);
+            }, index * 200);
+        });
         
         // Obter configuração do puzzle
         const puzzleConfig = this.dataManager.getPuzzleConfig();
@@ -194,8 +234,22 @@ class PuzzleGameManager {
         // Limpar resultado
         this.resultManager.clearResult();
         
-        // Recriar elementos
-        this.createPuzzleElements();
+        // Animar reset dos targets
+        this.elementManager.getTargets().forEach((target, index) => {
+            setTimeout(() => {
+                target.style.transform = 'scale(0.9)';
+                target.style.transition = 'transform 0.2s ease';
+                
+                setTimeout(() => {
+                    target.style.transform = 'scale(1)';
+                }, 200);
+            }, index * 100);
+        });
+        
+        // Recriar elementos após animação
+        setTimeout(() => {
+            this.createPuzzleElements();
+        }, 500);
     }
     
     // Voltar ao AR

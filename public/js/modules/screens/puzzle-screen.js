@@ -115,9 +115,41 @@ class PuzzleScreen extends BaseScreen {
         // Configurar animações de entrada do puzzle
         const puzzleElements = this.element.querySelectorAll('.puzzle-element');
         puzzleElements.forEach((element, index) => {
+            // Inicializar estado
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            // Animar entrada
             setTimeout(() => {
-                element.classList.add('visible');
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
             }, index * 150);
+        });
+        
+        // Animar peças e targets
+        const pieces = this.element.querySelectorAll('.puzzle-piece');
+        pieces.forEach((piece, index) => {
+            piece.style.opacity = '0';
+            piece.style.transform = 'scale(0.8)';
+            piece.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            
+            setTimeout(() => {
+                piece.style.opacity = '1';
+                piece.style.transform = 'scale(1)';
+            }, 300 + (index * 100));
+        });
+        
+        const targets = this.element.querySelectorAll('.puzzle-target');
+        targets.forEach((target, index) => {
+            target.style.opacity = '0';
+            target.style.transform = 'scale(0.8)';
+            target.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            
+            setTimeout(() => {
+                target.style.opacity = '1';
+                target.style.transform = 'scale(1)';
+            }, 500 + (index * 100));
         });
     }
     
