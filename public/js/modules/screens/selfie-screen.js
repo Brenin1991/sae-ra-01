@@ -306,7 +306,13 @@ class SelfieScreen extends BaseScreen {
             
             const blob = new Blob([ab], { type: mimeString });
             
-            // Método 1: Usar FileSaver.js se disponível
+            // Método 1: Usar Web Share API (melhor para iOS)
+            if (navigator.share && this.isIOS) {
+                this.shareImage(blob, filename);
+                return;
+            }
+            
+            // Método 2: Usar FileSaver.js se disponível
             if (typeof saveAs !== 'undefined') {
                 saveAs(blob, filename);
                 console.log('✅ Imagem salva usando FileSaver.js');
@@ -314,7 +320,7 @@ class SelfieScreen extends BaseScreen {
                 return;
             }
             
-            // Método 2: Usar URL.createObjectURL (mais compatível com iOS)
+            // Método 3: Usar URL.createObjectURL (fallback)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -344,6 +350,83 @@ class SelfieScreen extends BaseScreen {
             
             // Fallback: método original
             this.saveImageFallback(dataURL, filename);
+        }
+    }
+    
+    // Método para compartilhar imagem usando Web Share API
+    async shareImage(blob, filename) {
+        try {
+            console.log('📤 Compartilhando imagem via Web Share API...');
+            
+            // Criar arquivo para compartilhamento
+            const file = new File([blob], filename, { type: blob.type });
+            
+            // Configurar dados para compartilhamento
+            const shareData = {
+                title: 'Minha Selfie AR',
+                text: 'Confira minha selfie tirada na experiência de Realidade Aumentada!',
+                files: [file]
+            };
+            
+            // Tentar compartilhar
+            if (navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+                console.log('✅ Imagem compartilhada com sucesso via Web Share API');
+                this.showShareFeedback();
+            } else {
+                console.log('⚠️ Web Share API não suporta arquivos, tentando método alternativo');
+                this.fallbackShare(blob, filename);
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro ao compartilhar:', error);
+            
+            // Se o usuário cancelou o compartilhamento, não mostrar erro
+            if (error.name === 'AbortError') {
+                console.log('👤 Usuário cancelou o compartilhamento');
+                return;
+            }
+            
+            // Fallback para outros métodos
+            this.fallbackShare(blob, filename);
+        }
+    }
+    
+    // Fallback para compartilhamento
+    fallbackShare(blob, filename) {
+        try {
+            console.log('🔄 Usando método fallback para compartilhamento...');
+            
+            // Criar URL temporária
+            const url = URL.createObjectURL(blob);
+            
+            // Criar link de compartilhamento
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            // Para iOS, abrir em nova aba
+            if (this.isIOS) {
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+            }
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Limpar URL
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 1000);
+            
+            console.log('✅ Imagem salva usando método fallback');
+            this.showSaveFeedback();
+            
+        } catch (error) {
+            console.error('❌ Erro no fallback:', error);
+            this.showErrorFeedback('Erro ao salvar/compartilhar imagem');
         }
     }
     
@@ -387,6 +470,34 @@ class SelfieScreen extends BaseScreen {
         `;
         
         feedback.textContent = '💾 Selfie salva!';
+        document.body.appendChild(feedback);
+        
+        setTimeout(() => {
+            if (feedback.parentNode) {
+                feedback.parentNode.removeChild(feedback);
+            }
+        }, 2000);
+    }
+    
+    showShareFeedback() {
+        const feedback = document.createElement('div');
+        feedback.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 18000;
+            background: rgba(0, 150, 255, 0.9);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        `;
+        
+        feedback.textContent = '📤 Compartilhando...';
         document.body.appendChild(feedback);
         
         setTimeout(() => {
@@ -503,14 +614,14 @@ class SelfieScreen extends BaseScreen {
     
     saveCapturedImageOptimized(imageData) {
         try {
-            // Usar método otimizado para salvar
+            // Usar método otimizado para salvar/compartilhar
             this.saveImageOptimized(imageData, `selfie-certificado-${Date.now()}.jpg`);
             
-            console.log('💾 Imagem capturada salva com sucesso');
+            console.log('💾 Imagem capturada processada com sucesso');
             
         } catch (error) {
-            console.error('❌ Erro ao salvar imagem capturada:', error);
-            this.showErrorFeedback('Erro ao salvar imagem');
+            console.error('❌ Erro ao processar imagem capturada:', error);
+            this.showErrorFeedback('Erro ao processar imagem');
         }
     }
     
