@@ -41,7 +41,7 @@ class LandscapeBlocker {
             left: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            background: linear-gradient(135deg,rgb(255, 255, 255) 0%,rgb(255, 255, 255) 100%) !important;
             display: none;
             flex-direction: column !important;
             justify-content: center !important;
@@ -56,45 +56,37 @@ class LandscapeBlocker {
         `;
         
         // Ícone de rotação
-        const rotateIcon = document.createElement('div');
-        rotateIcon.innerHTML = `
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M23 4v6h-6"/>
-                <path d="M1 20v-6h6"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-                <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
-            </svg>
-        `;
+        const rotateIcon = document.createElement('img');
+        rotateIcon.src = 'assets/textures/feedbacks/rotate-icon.png';
         rotateIcon.style.cssText = `
+            width: 80px;
+            height: 80px;
             margin-bottom: 20px;
             animation: rotate 2s ease-in-out infinite;
         `;
         
-        // Título
-        const title = document.createElement('h2');
-        title.textContent = 'Gire seu dispositivo';
-        title.style.cssText = `
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            margin-top: 0;
+        // Fallback se a imagem não carregar
+        rotateIcon.onerror = () => {
+            rotateIcon.style.display = 'none';
+        };
+        
+        // Imagem de rotação
+        const rotateImage = document.createElement('img');
+        rotateImage.src = 'assets/textures/feedbacks/rotate.png';
+        rotateImage.style.cssText = `
+            width: 200px;
+            height: auto;
+            margin-bottom: 20px;
         `;
         
-        // Mensagem
-        const message = document.createElement('p');
-        message.textContent = 'Esta experiência foi projetada para ser usada no modo retrato. Por favor, gire seu dispositivo para continuar.';
-        message.style.cssText = `
-            font-size: 16px;
-            line-height: 1.5;
-            max-width: 300px;
-            margin: 0;
-            opacity: 0.9;
-        `;
+        // Fallback se a imagem não carregar
+        rotateImage.onerror = () => {
+            rotateImage.style.display = 'none';
+        };
         
         // Adicionar elementos ao overlay
         this.overlay.appendChild(rotateIcon);
-        this.overlay.appendChild(title);
-        this.overlay.appendChild(message);
+        this.overlay.appendChild(rotateImage);
         
         // Adicionar CSS para animação
         const style = document.createElement('style');

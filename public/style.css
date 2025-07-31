@@ -130,7 +130,10 @@ input, textarea {
     z-index: 2100;
     width: 80vw;
     height: 60vh;
-    background-color: transparent;
+    background-image: url(assets/textures/tutorial-text.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -246,19 +249,18 @@ input, textarea {
     top: 5%;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    color: rgb(0, 0, 0);
     padding: 12px 20px;
-    border-radius: 25px;
     font-size: 16px;
     font-weight: bold;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    pointer-events: auto; /* Habilitar eventos de toque */
+    pointer-events: auto;
+    background-image: url(assets/textures/feedbacks/peca_encomtrada_contador.png);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .photo-counter:hover {

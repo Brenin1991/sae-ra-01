@@ -25,7 +25,7 @@ function showLoadingOverlay() {
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg,rgb(255, 255, 255) 0%,rgb(255, 255, 255) 100%);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -35,36 +35,52 @@ function showLoadingOverlay() {
         font-family: Arial, sans-serif;
     `;
     
-    const spinner = document.createElement('div');
+    // Spinner como imagem
+    const spinner = document.createElement('img');
+    spinner.src = 'assets/textures/feedbacks/load-icon.png';
     spinner.style.cssText = `
-        width: 50px;
-        height: 50px;
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        border-top: 4px solid white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+        width: 80px;
+        height: 80px;
         margin-bottom: 20px;
+        animation: spin 1s linear infinite;
     `;
     
-    const text = document.createElement('div');
-    text.textContent = 'Carregando experiência AR...';
-    text.style.cssText = `
-        font-size: 18px;
-        font-weight: bold;
-        text-align: center;
+    // Fallback se a imagem não carregar
+    spinner.onerror = () => {
+        spinner.style.display = 'none';
+    };
+    
+    // Imagem de loading
+    const loadingImage = document.createElement('img');
+    loadingImage.src = 'assets/textures/feedbacks/load.png';
+    loadingImage.style.cssText = `
+        width: 200px;
+        height: auto;
+        margin-bottom: 10px;
     `;
     
-    const progress = document.createElement('div');
+    // Fallback se a imagem não carregar
+    loadingImage.onerror = () => {
+        loadingImage.style.display = 'none';
+    };
+    
+    // Progress como imagem
+    const progress = document.createElement('img');
     progress.id = 'loading-progress';
+    progress.src = 'assets/textures/feedbacks/loading-progress.png';
     progress.style.cssText = `
+        width: 150px;
+        height: auto;
         margin-top: 10px;
-        font-size: 14px;
-        opacity: 0.8;
     `;
-    progress.textContent = 'Inicializando...';
+    
+    // Fallback se a imagem não carregar
+    progress.onerror = () => {
+        progress.style.display = 'none';
+    };
     
     overlay.appendChild(spinner);
-    overlay.appendChild(text);
+    overlay.appendChild(loadingImage);
     overlay.appendChild(progress);
     document.body.appendChild(overlay);
     
@@ -1023,70 +1039,23 @@ function showPhotoFeedback(success, pieceCount, pieceImageSrc = null) {
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 10000;
-        background: ${success ? 'rgba(0, 255, 0, 0.9)' : 'rgba(255, 0, 0, 0.9)'};
+        background: ${success ? 'rgba(0, 255, 0, 0)' : 'rgba(255, 0, 0, 0)'};
         color: white;
         padding: 20px 30px;
         border-radius: 15px;
         font-size: 18px;
         font-weight: bold;
         text-align: center;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         animation: feedbackFade 2s ease-out forwards;
-        min-width: 200px;
-        max-width: 300px;
+        width: 200px;
+        height: 100px;
+        background-image: url(assets/textures/feedbacks/${success ? 'peca_encontrada.png' : 'nenhuma_peca_encontrada.png'});
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
     `;
     
-    const content = document.createElement('div');
-    content.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-    `;
-    
-    const text = document.createElement('div');
-    text.textContent = success 
-        ? `📸 Foto tirada! ${pieceCount} peça(s) capturada(s)`
-        : '📸 Nenhuma peça encontrada na foto';
-    text.style.cssText = `
-        font-size: 16px;
-        line-height: 1.4;
-    `;
-    content.appendChild(text);
-    
-    if (success && pieceImageSrc && pieceCount > 0) {
-        const pieceImage = document.createElement('img');
-        pieceImage.src = pieceImageSrc;
-        pieceImage.style.cssText = `
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            animation: pieceImagePop 0.5s ease-out 0.3s both;
-        `;
-        
-        pieceImage.onerror = () => {
-            pieceImage.style.display = 'none';
-        };
-        
-        content.appendChild(pieceImage);
-        
-        if (pieceCount > 1) {
-            const extraText = document.createElement('div');
-            extraText.textContent = `+${pieceCount - 1} mais`;
-            extraText.style.cssText = `
-                font-size: 14px;
-                opacity: 0.8;
-                font-style: italic;
-            `;
-            content.appendChild(extraText);
-        }
-    }
-    
-    feedback.appendChild(content);
+
     document.body.appendChild(feedback);
     
     setTimeout(() => {

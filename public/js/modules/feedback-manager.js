@@ -64,8 +64,15 @@ class FeedbackManager {
             font-weight: bold;
             z-index: 4000;
             animation: feedbackFade 1s ease-out forwards; z-index: 99999999;
+            background-image: url('assets/textures/feedbacks/quebra_cabeca_1_concluido.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 99999999;
+            width: 250px;
+            height: 150px;
         `;
-        feedback.textContent = '❌ Incorreto!';
+        //feedback.textContent = '❌ Incorreto!';
         
         document.body.appendChild(feedback);
         
@@ -84,7 +91,7 @@ class FeedbackManager {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(76, 175, 80, 0.95);
+            background: rgba(38, 152, 172, 0);
             color: white;
             padding: 30px;
             border-radius: 15px;
@@ -92,10 +99,15 @@ class FeedbackManager {
             font-weight: bold;
             z-index: 5000;
             animation: feedbackFade 1.5s ease-out forwards;
-            text-align: center;
-             z-index: 99999999;
+            background-image: url('assets/textures/feedbacks/quebra_cabeca_1_concluido.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 99999999;
+            width: 250px;
+            height: 150px;
         `;
-        feedback.innerHTML = '🎉<br>Quebra-Cabeça<br>Completo!';
+       // feedback.innerHTML = '🎉<br>Quebra-Cabeça<br>Completo!';
         
         document.body.appendChild(feedback);
         
