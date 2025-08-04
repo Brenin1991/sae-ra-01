@@ -72,9 +72,9 @@ class PuzzleGameManager {
         // Configurar drag and drop após criar elementos
         this.dragDropManager = new DragDropManager(this.elementManager, this);
         
-        // Configurar eventos de drag para todas as peças
+        // Configurar eventos de movimento para todas as peças
         this.elementManager.getPieces().forEach(piece => {
-            this.dragDropManager.setupPieceDragEvents(piece);
+            this.dragDropManager.setupPieceMoveEvents(piece);
         });
         
         // Configurar eventos de drop para todos os targets
@@ -97,61 +97,81 @@ class PuzzleGameManager {
             target.style.transform = 'scale(1)';
         }, 300);
         
-        // Mostrar a imagem da peça no target
-        const puzzleData = this.dataManager.getPuzzleData();
-        const pieceData = puzzleData.find(p => p.id === piece.dataset.pieceId);
-        if (pieceData) {
-            // Limpar conteúdo anterior do target
-            target.innerHTML = '';
-            
-            // Criar imagem da peça
-            const pieceImg = document.createElement('img');
-            pieceImg.src = pieceData.peca;
-            pieceImg.alt = `Peça ${pieceData.id} montada`;
-            pieceImg.style.cssText = `
-                opacity: 0;
-                transition: opacity 0.5s ease-in-out;
-                transform: scale(0.8);
-            `;
-            
-            // Aplicar tamanho original da peça
-            pieceImg.onload = () => {
-                const originalWidth = pieceImg.naturalWidth;
-                const originalHeight = pieceImg.naturalHeight;
-                
-                // Aplicar dimensões originais
-                pieceImg.style.width = `${originalWidth}px`;
-                pieceImg.style.height = `${originalHeight}px`;
-            };
-            
-            target.appendChild(pieceImg);
-            
-            // Animar entrada da imagem
-            setTimeout(() => {
-                pieceImg.style.opacity = '1';
-                pieceImg.style.transform = 'scale(1)';
-                pieceImg.style.transition = 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out';
-            }, 100);
-        }
+        // Animar peça para o target
+        const targetRect = target.getBoundingClientRect();
+        const pieceRect = piece.getBoundingClientRect();
         
-        // Animar saída da peça original
-        piece.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        piece.style.opacity = '0';
-        piece.style.transform = 'scale(0.8)';
+        // Calcular posição final
+        const finalX = targetRect.left + (targetRect.width - pieceRect.width) / 2;
+        const finalY = targetRect.top + (targetRect.height - pieceRect.height) / 2;
         
+        // Animar movimento da peça
+        piece.style.position = 'fixed';
+        piece.style.left = `${finalX}px`;
+        piece.style.top = `${finalY}px`;
+        piece.style.zIndex = '1000';
+        piece.style.transform = 'scale(1) rotate(0deg)';
+        piece.style.transition = 'all 0.5s ease-in-out';
+        piece.style.pointerEvents = 'none';
+        
+        // Mostrar a imagem da peça no target após animação
         setTimeout(() => {
-            piece.style.display = 'none';
-            // Garantir que volta ao estado inicial
-            piece.style.opacity = '1';
-            piece.style.transform = 'scale(1)';
-        }, 300);
+            const puzzleData = this.dataManager.getPuzzleData();
+            const pieceData = puzzleData.find(p => p.id === piece.dataset.pieceId);
+            if (pieceData) {
+                // Limpar conteúdo anterior do target
+                target.innerHTML = '';
+                
+                // Criar imagem da peça
+                const pieceImg = document.createElement('img');
+                pieceImg.src = pieceData.peca;
+                pieceImg.alt = `Peça ${pieceData.id} montada`;
+                pieceImg.style.cssText = `
+                    opacity: 0;
+                    transition: opacity 0.5s ease-in-out;
+                    transform: scale(0.8);
+                `;
+                
+                // Aplicar tamanho original da peça
+                pieceImg.onload = () => {
+                    const originalWidth = pieceImg.naturalWidth;
+                    const originalHeight = pieceImg.naturalHeight;
+                    
+                    // Aplicar dimensões originais
+                    pieceImg.style.width = `${originalWidth}px`;
+                    pieceImg.style.height = `${originalHeight}px`;
+                };
+                
+                target.appendChild(pieceImg);
+                
+                // Animar entrada da imagem
+                setTimeout(() => {
+                    pieceImg.style.opacity = '1';
+                    pieceImg.style.transform = 'scale(1)';
+                    pieceImg.style.transition = 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out';
+                }, 100);
+            }
+            
+            // Esconder peça original
+            piece.style.opacity = '0';
+            piece.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                piece.style.display = 'none';
+                // Garantir que volta ao estado inicial
+                piece.style.opacity = '1';
+                piece.style.transform = 'scale(1)';
+            }, 300);
+        }, 500);
         
         // Incrementar contador
         this.completedPieces++;
         
         // Verificar se o quebra-cabeça foi completado
         if (this.completedPieces >= this.dataManager.getTotalPieces()) {
-            this.completePuzzle();
+            setTimeout(() => {
+                this.completePuzzle();
+            }, 1000);
         }
         
         // Feedback visual e sonoro

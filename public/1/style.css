@@ -573,7 +573,7 @@ a-scene {
     max-width: 200px;
     max-height: 200px;
     opacity: 0; /* Começar invisível */
-    z-index: 100;
+    z-index: 99999999;
 }
 
 .puzzle-piece:hover {

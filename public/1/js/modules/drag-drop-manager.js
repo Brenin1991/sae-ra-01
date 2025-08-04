@@ -45,7 +45,7 @@ class DragDropManager {
         piece.style.cursor = 'grab';
         piece.style.userSelect = 'none';
         piece.style.touchAction = 'none';
-        piece.style.zIndex = '10000';
+        piece.style.zIndex = '99999999';
     }
     
     // Configurar eventos de drop para um target
@@ -76,7 +76,7 @@ class DragDropManager {
         
         // Configurar estilo da peça
         piece.style.position = 'fixed';
-        piece.style.zIndex = '1000';
+        piece.style.zIndex = '999999999';
         piece.style.cursor = 'grabbing';
         piece.style.transform = 'scale(1.1) rotate(5deg)';
         piece.style.transition = 'transform 0.2s ease';
