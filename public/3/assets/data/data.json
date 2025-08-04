@@ -1,0 +1,83 @@
+{
+    "fase1": {
+        "model": "assets/models/fase1.glb",
+        "objetos": [
+            {
+                "id": "01",
+                "imagem": "assets/textures/fase1/01.png",
+                "peca": "assets/textures/fase1/peca01.png"
+            },
+            {
+                "id": "02",
+                "imagem": "assets/textures/fase1/02.png",
+                "peca": "assets/textures/fase1/peca02.png"
+            },
+            {
+                "id": "03",
+                "imagem": "assets/textures/fase1/03.png",
+                "peca": "assets/textures/fase1/peca03.png"
+            },
+            {
+                "id": "04",
+                "imagem": "assets/textures/fase1/04.png",
+                "peca": "assets/textures/fase1/peca04.png"
+            }            
+        ],
+        "quebracabeca": [
+            {
+                "base": "assets/textures/fase1/quebracabeca/fase1-base.png",
+                "resultado": "assets/textures/fase1/quebracabeca/fase1-resultado.png"
+            },
+            {
+                "id": "01",
+                "peca": "assets/textures/fase1/quebracabeca/fase1-01.png",
+                "target": "assets/textures/fase1/quebracabeca/fase1-01-target.png",
+                "position": {
+                    "x": 45,
+                    "y": 20,
+                    "description": "Topo central"
+                }
+            },
+            {
+                "id": "02",
+                "peca": "assets/textures/fase1/quebracabeca/fase1-02.png",
+                "target": "assets/textures/fase1/quebracabeca/fase1-02-target.png",
+                "position": {
+                    "x": -10,
+                    "y": 10,
+                    "description": "Lateral esquerda"
+                }
+            },
+            {
+                "id": "03",
+                "peca": "assets/textures/fase1/quebracabeca/fase1-03.png",
+                "target": "assets/textures/fase1/quebracabeca/fase1-03-target.png",
+                "position": {
+                    "x": 198,
+                    "y": 28,
+                    "description": "Lateral direita"
+                }
+            },
+            {
+                "id": "04",
+                "peca": "assets/textures/fase1/quebracabeca/fase1-04.png",
+                "target": "assets/textures/fase1/quebracabeca/fase1-04-target.png",
+                "position": {
+                    "x": 127,
+                    "y": 28,
+                    "description": "Base esquerda"
+                }
+            },
+            {
+                "id": "05",
+                "peca": "assets/textures/fase1/quebracabeca/fase1-05.png",
+                "target": "assets/textures/fase1/quebracabeca/fase1-05-target.png",
+                "position": {
+                    "x": -15,
+                    "y": 95,
+                    "description": "Base direita"
+                }
+            }
+        ]
+    }
+}
