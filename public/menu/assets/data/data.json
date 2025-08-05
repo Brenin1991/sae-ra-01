@@ -1,0 +1,23 @@
+{
+    "fases": [{
+        "id": "01",
+        "url": "1",
+        "icon": "assets/textures/bimestre-1-fase.png"
+    },  
+    {
+        "id": "02",
+        "url": "2",
+        "icon": "assets/textures/bimestre-2-fase.png"
+    },
+    {
+        "id": "03",
+        "url": "3",
+        "icon": "assets/textures/bimestre-3-fase.png"
+    },
+    {
+        "id": "04",
+        "url": "4",
+        "icon": "assets/textures/bimestre-4-fase.png"
+    }
+]
+}
