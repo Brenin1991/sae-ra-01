@@ -15,6 +15,18 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeApp();
 });
 
+const btnVoltar = document.getElementById('btn-voltar');
+btnVoltar.addEventListener('click', () => {
+    // Voltar para o menu
+    window.location.href = '../menu/';
+});
+
+const btnVoltarIcon = document.getElementById('btn-voltar-icon');
+btnVoltarIcon.addEventListener('click', () => {
+    // Voltar para o menu
+    window.location.href = '../menu/';
+});
+
 // Função para mostrar overlay de carregamento
 function showLoadingOverlay() {
     const overlay = document.createElement('div');

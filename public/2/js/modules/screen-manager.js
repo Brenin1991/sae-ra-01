@@ -17,19 +17,11 @@ class ScreenManager {
         this.registerDefaultScreens();
         
         // Iniciar na tela principal
-        this.showScreen('main');
+        this.showScreen('tutorial');
     }
     
     registerDefaultScreens() {
         console.log('🔄 Registrando telas padrão...');
-        
-        // Registrar telas padrão se as classes existirem
-        if (window.MainScreen) {
-            this.registerScreen('main', new MainScreen());
-            console.log('✅ MainScreen disponível');
-        } else {
-            console.error('❌ MainScreen não encontrada');
-        }
         
         if (window.TutorialScreen) {
             this.registerScreen('tutorial', new TutorialScreen());

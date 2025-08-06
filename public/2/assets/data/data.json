@@ -21,7 +21,17 @@
                 "id": "04",
                 "imagem": "assets/textures/fase1/04.png",
                 "peca": "assets/textures/fase1/peca04.png"
-            }            
+            },
+            {
+                "id": "05",
+                "imagem": "assets/textures/fase1/05.png",
+                "peca": "assets/textures/fase1/peca05.png"
+            },
+            {
+                "id": "06",
+                "imagem": "assets/textures/fase1/06.png",
+                "peca": "assets/textures/fase1/peca06.png"
+            }
         ],
         "quebracabeca": [
             {

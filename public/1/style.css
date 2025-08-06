@@ -1201,3 +1201,20 @@ a-scene {
         /* animation-duration: 0.3s; */
     }
 } 
+#btn-voltar{
+    position: fixed;
+    top: 10%;
+    right: 10%;
+    width: 40%;
+    z-index: 16001;
+}
+
+#btn-voltar-icon{
+    position: fixed;
+    top: 5%;
+    left: 10%;
+    width: 15%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    pointer-events: auto;
+}

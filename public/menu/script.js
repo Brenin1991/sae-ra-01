@@ -9,7 +9,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
     
-    // Carregar e exibir as fases
+    // Configurar evento do botão principal
+    setupMainButton();
+    
+    // Carregar e exibir as fases (mas não mostrar ainda)
     loadFases();
 });
 
@@ -142,4 +145,33 @@ function limparProgresso() {
     localStorage.removeItem('fasesCompletadas');
     console.log('🗑️ Progresso limpo!');
     location.reload();
+}
+
+// Função para configurar o botão principal
+function setupMainButton() {
+    const mainButton = document.getElementById('main-button');
+    if (mainButton) {
+        mainButton.addEventListener('click', function() {
+            console.log('🎯 Botão principal clicado!');
+            showMenu();
+        });
+    }
+}
+
+// Função para mostrar o menu
+function showMenu() {
+    const main = document.getElementById('main');
+    const menu = document.getElementById('menu');
+    
+    if (main && menu) {
+        // Fade out da tela principal
+        main.style.opacity = '0';
+        
+        // Após o fade out, mostrar o menu
+        setTimeout(() => {
+            main.style.visibility = 'hidden';
+            menu.classList.add('ativo');
+            console.log('✅ Menu ativado!');
+        }, 500);
+    }
 }

@@ -115,19 +115,15 @@ class DragDropManager {
         
         e.preventDefault();
         
-        // Encontrar target sobreposto
+        // Encontrar target sobreposto (já verifica se é o correto)
         const target = this.findOverlappingTarget();
         
         if (target) {
-            // Verificar se é o target correto
-            if (this.draggedPiece.dataset.pieceId === target.dataset.targetId) {
-                this.gameManager.placePieceInTarget(this.draggedPiece, target);
-            } else {
-                this.gameManager.showIncorrectPlacementFeedback();
-                this.returnPieceToOriginalPosition();
-            }
+            // Target encontrado e é o correto
+            this.gameManager.placePieceInTarget(this.draggedPiece, target);
         } else {
-            // Retornar peça à posição original
+            // Nenhum target correto encontrado
+            this.gameManager.showIncorrectPlacementFeedback();
             this.returnPieceToOriginalPosition();
         }
         
@@ -145,11 +141,12 @@ class DragDropManager {
         targets.forEach(target => {
             const targetRect = target.getBoundingClientRect();
             
-            // Verificar sobreposição
-            const isOverlapping = !(pieceRect.right < targetRect.left || 
-                                   pieceRect.left > targetRect.right || 
-                                   pieceRect.bottom < targetRect.top || 
-                                   pieceRect.top > targetRect.bottom);
+            // Verificar sobreposição (mais tolerante)
+            const overlapThreshold = 20; // pixels de tolerância
+            const isOverlapping = !(pieceRect.right < targetRect.left - overlapThreshold || 
+                                   pieceRect.left > targetRect.right + overlapThreshold || 
+                                   pieceRect.bottom < targetRect.top - overlapThreshold || 
+                                   pieceRect.top > targetRect.bottom + overlapThreshold);
             
             if (isOverlapping) {
                 // Verificar se é o target correto
@@ -177,17 +174,22 @@ class DragDropManager {
         const pieceRect = this.draggedPiece.getBoundingClientRect();
         const targets = this.elementManager.getTargets();
         
+        // Primeiro, procurar pelo target correto entre os sobrepostos
         for (const target of targets) {
             const targetRect = target.getBoundingClientRect();
             
-            // Verificar sobreposição
-            const isOverlapping = !(pieceRect.right < targetRect.left || 
-                                   pieceRect.left > targetRect.right || 
-                                   pieceRect.bottom < targetRect.top || 
-                                   pieceRect.top > targetRect.bottom);
+            // Verificar sobreposição (mais tolerante)
+            const overlapThreshold = 20; // pixels de tolerância
+            const isOverlapping = !(pieceRect.right < targetRect.left - overlapThreshold || 
+                                   pieceRect.left > targetRect.right + overlapThreshold || 
+                                   pieceRect.bottom < targetRect.top - overlapThreshold || 
+                                   pieceRect.top > targetRect.bottom + overlapThreshold);
             
             if (isOverlapping) {
-                return target;
+                // Se for o target correto, aceitar imediatamente
+                if (this.draggedPiece.dataset.pieceId === target.dataset.targetId) {
+                    return target;
+                }
             }
         }
         
