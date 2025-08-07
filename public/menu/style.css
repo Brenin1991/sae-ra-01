@@ -78,6 +78,20 @@ html, body {
     font-size: 18px;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Animação de pulse */
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
 #main-top{
