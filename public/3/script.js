@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Mostrar overlay de carregamento
     showLoadingOverlay();
     
+    // Inicializar SoundManager
+    initializeSoundManager();
+    
     // Inicializar webcam e A-Frame imediatamente
     initializeApp();
 });
@@ -26,6 +29,63 @@ btnVoltarIcon.addEventListener('click', () => {
     // Voltar para o menu
     window.location.href = '../menu/';
 });
+
+// Botão de teste de som
+const testSoundButton = document.getElementById('testSound');
+if (testSoundButton) {
+    testSoundButton.addEventListener('click', async () => {
+        console.log('Testando som...');
+        await window.SoundManager.forceAudioActivation();
+        await window.SoundManager.playSound('NA001');
+        console.log('Status do áudio:', window.SoundManager.isAudioWorking());
+    });
+}
+
+// Inicializar SoundManager
+async function initializeSoundManager() {
+    try {
+        await window.SoundManager.initialize();
+        console.log('SoundManager inicializado com sucesso');
+        
+        // Adicionar event listeners para botões de narração
+        setupNarrationButtons();
+        
+        // Ativar áudio em qualquer clique
+        document.addEventListener('click', async () => {
+            await window.SoundManager.forceAudioActivation();
+        });
+        
+        document.addEventListener('touchstart', async () => {
+            await window.SoundManager.forceAudioActivation();
+        });
+      
+    } catch (error) {
+        console.error('Erro ao inicializar SoundManager:', error);
+    }
+}
+
+// Configurar botões de narração
+function setupNarrationButtons() {
+    // Botão de narração do tutorial
+    const narracaoTutorial = document.getElementById('narracao-tutorial');
+    if (narracaoTutorial) {
+        narracaoTutorial.addEventListener('click', async () => {
+            console.log('🎵 Clicou no botão de narração do tutorial');
+            await window.SoundManager.forceAudioActivation();
+            await window.SoundManager.playSoundWithControl('NA003');
+        });
+    }
+    
+    // Botão de narração da tela de parabéns
+    const narracaoParabens = document.getElementById('narracao-icon-parabens');
+    if (narracaoParabens) {
+        narracaoParabens.addEventListener('click', async () => {
+            console.log('🎵 Clicou no botão de narração dos parabéns');
+            await window.SoundManager.forceAudioActivation();
+            await window.SoundManager.playSoundWithControl('NA004_3');
+        });
+    }
+}
 
 // Função para mostrar overlay de carregamento
 function showLoadingOverlay() {

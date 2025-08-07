@@ -1,0 +1,40 @@
+{
+    "sounds": [
+        {
+            "id": "NA001",
+            "sound": "assets/sounds/NA001.mp3"
+        },
+        {
+            "id": "NA002",
+            "sound": "assets/sounds/NA002.mp3"
+        },
+        {
+            "id": "NA003",
+            "sound": "assets/sounds/NA003.mp3"
+        },
+        {
+            "id": "NA004",
+            "sound": "assets/sounds/NA004.mp3"
+        },
+        {
+            "id": "NA004_2",
+            "sound": "assets/sounds/NA004_2.mp3"
+        },
+        {
+            "id": "NA004_3",
+            "sound": "assets/sounds/NA004_3.mp3"
+        },
+        {
+            "id": "NA004_4",
+            "sound": "assets/sounds/NA004_4.mp3"
+        },
+        {
+            "id": "NA005",
+            "sound": "assets/sounds/NA005.mp3"
+        },
+        {
+            "id": "NA006",
+            "sound": "assets/sounds/NA006.mp3"
+        }
+    ]
+}

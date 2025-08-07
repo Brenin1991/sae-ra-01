@@ -48,6 +48,7 @@ class SelfieScreen extends BaseScreen {
     setupCameraIcon() {
         // Configurar ícone da câmera para captura da tela
         const cameraIcon = this.element.querySelector('#camera-icon-selfie');
+        const btnVoltar = this.element.querySelector('#btn-voltar');
         if (cameraIcon) {
             // Adicionar classe para ignorar na captura
             cameraIcon.classList.add('capture-ignore');
@@ -56,6 +57,9 @@ class SelfieScreen extends BaseScreen {
                 this.captureSelfieScreen();
             });
             console.log('📷 Ícone da câmera configurado para captura');
+        }
+        if (btnVoltar) {
+            btnVoltar.classList.add('capture-ignore');
         }
     }
     

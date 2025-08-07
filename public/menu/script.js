@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
     
+    // Inicializar sistema de áudio simples
+    initializeSimpleAudio();
+    
     // Configurar evento do botão principal
     setupMainButton();
     
@@ -145,6 +148,108 @@ function limparProgresso() {
     localStorage.removeItem('fasesCompletadas');
     console.log('🗑️ Progresso limpo!');
     location.reload();
+}
+
+// Sistema simples de áudio
+let audioContext = null;
+let sounds = {};
+
+// Inicializar sistema de áudio simples
+async function initializeSimpleAudio() {
+    try {
+        // Criar contexto de áudio
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Carregar sons
+        await loadSounds();
+        
+        // Configurar event listeners para sons
+        setupAudioListeners();
+        
+        // Ativar áudio em qualquer interação
+        document.addEventListener('click', () => {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        });
+        
+        document.addEventListener('touchstart', () => {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        });
+        
+        console.log('🔊 Sistema de áudio inicializado');
+    } catch (error) {
+        console.error('❌ Erro ao inicializar áudio:', error);
+    }
+}
+
+// Carregar sons
+async function loadSounds() {
+    try {
+        // Carregar NA001
+        const response1 = await fetch('../1/assets/sounds/NA001.mp3');
+        const arrayBuffer1 = await response1.arrayBuffer();
+        sounds.NA001 = await audioContext.decodeAudioData(arrayBuffer1);
+        
+        // Carregar NA002
+        const response2 = await fetch('../1/assets/sounds/NA002.mp3');
+        const arrayBuffer2 = await response2.arrayBuffer();
+        sounds.NA002 = await audioContext.decodeAudioData(arrayBuffer2);
+        
+        console.log('✅ Sons carregados com sucesso');
+    } catch (error) {
+        console.error('❌ Erro ao carregar sons:', error);
+    }
+}
+
+// Tocar som
+function playSound(soundId) {
+    if (!audioContext || !sounds[soundId]) {
+        console.warn(`Som não disponível: ${soundId}`);
+        return;
+    }
+    
+    try {
+        // Ativar contexto se necessário
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        const source = audioContext.createBufferSource();
+        const gainNode = audioContext.createGain();
+        
+        source.buffer = sounds[soundId];
+        gainNode.gain.value = 0.7; // Volume
+        
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        source.start(0);
+        console.log(`🔊 Tocando: ${soundId}`);
+    } catch (error) {
+        console.error(`❌ Erro ao tocar ${soundId}:`, error);
+    }
+}
+
+// Configurar listeners de áudio
+function setupAudioListeners() {
+    // main-top toca NA001
+    const mainTop = document.getElementById('main-top');
+    if (mainTop) {
+        mainTop.addEventListener('click', () => {
+            playSound('NA001');
+        });
+    }
+    
+    // base-top toca NA002
+    const baseTop = document.getElementById('enunciado');
+    if (baseTop) {
+        baseTop.addEventListener('click', () => {
+            playSound('NA002');
+        });
+    }
 }
 
 // Função para configurar o botão principal
